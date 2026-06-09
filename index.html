@@ -9,7 +9,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
   --bg-deep:    #0a0600;
   --bg-dark:    #120c00;
@@ -25,73 +24,33 @@
   --text-muted: rgba(200,160,80,0.38);
   --border:     rgba(200,130,30,0.18);
 }
-
-body {
-  background: var(--bg-deep);
-  color: var(--text-main);
-  font-family: 'Sarabun', sans-serif;
-  min-height: 100vh;
-}
-
+body { background: var(--bg-deep); color: var(--text-main); font-family: 'Sarabun', sans-serif; min-height: 100vh; }
 body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
     radial-gradient(ellipse 60% 40% at 15% 10%, rgba(232,112,16,0.11) 0%, transparent 70%),
     radial-gradient(ellipse 50% 35% at 85% 85%, rgba(180,70,0,0.08) 0%, transparent 70%),
     repeating-linear-gradient(rgba(200,120,20,0.05) 0px, transparent 1px, transparent 44px, rgba(200,120,20,0.05) 45px),
     repeating-linear-gradient(90deg, rgba(200,120,20,0.05) 0px, transparent 1px, transparent 44px, rgba(200,120,20,0.05) 45px);
 }
-
 #app { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 16px 48px; }
-
-.page { display: none; }
-.page.active { display: block; }
-
-/* topbar */
-.topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 32px;
-}
+.page { display: none; } .page.active { display: block; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 32px; }
 .logo-wrap { display: flex; align-items: center; gap: 12px; }
-.logo-box {
-  width: 44px; height: 44px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--orange), var(--gold));
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700;
-  color: #0a0600; flex-shrink: 0;
-}
+.logo-box { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, var(--orange), var(--gold)); display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #0a0600; flex-shrink: 0; }
 .logo-text .brand { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold); letter-spacing: 1px; }
 .logo-text .sub   { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
-.year-badge {
-  background: var(--orange-dim); border: 0.5px solid var(--orange-bdr);
-  border-radius: 20px; padding: 5px 16px; font-size: 12px; color: var(--gold);
-}
-
-/* hero */
+.year-badge { background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 20px; padding: 5px 16px; font-size: 12px; color: var(--gold); }
 .hero { text-align: center; padding: 8px 0 28px; }
-.hero-tag {
-  display: inline-block; background: var(--orange-dim); border: 0.5px solid var(--orange-bdr);
-  border-radius: 20px; padding: 4px 18px; font-size: 11.5px; color: var(--orange-lt);
-  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px;
-}
+.hero-tag { display: inline-block; background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 20px; padding: 4px 18px; font-size: 11.5px; color: var(--orange-lt); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
 .hero h1 { font-family: 'Cinzel', serif; font-size: 28px; color: #f8dfa0; line-height: 1.3; margin-bottom: 8px; }
 .hero p  { font-size: 14px; color: var(--text-sub); max-width: 500px; margin: 0 auto 10px; }
-
-/* stats */
 .stats-row { display: flex; justify-content: center; gap: 36px; margin-bottom: 36px; }
 .stat-item .num  { font-family: 'Cinzel', serif; font-size: 22px; color: var(--gold); text-align: center; }
 .stat-item .desc { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; text-align: center; }
-
-/* comp cards */
 .comp-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-bottom: 32px; }
 @media(min-width:600px){ .comp-grid { grid-template-columns: repeat(4,1fr); } }
-
-.comp-card {
-  position: relative; border-radius: 12px; overflow: hidden;
-  border: 0.5px solid var(--orange-bdr); cursor: pointer; aspect-ratio: 3/4;
-  transition: transform 0.2s, border-color 0.2s; background: var(--bg-card);
-}
+.comp-card { position: relative; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--orange-bdr); cursor: pointer; aspect-ratio: 3/4; transition: transform 0.2s, border-color 0.2s; background: var(--bg-card); }
 .comp-card:hover { transform: translateY(-4px); border-color: var(--orange-bdr2); }
 .comp-card:active { transform: scale(0.97); }
 .comp-card .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.38; transition: opacity 0.3s; }
@@ -106,20 +65,11 @@ body::before {
 .img-label { position: absolute; top: 8px; right: 8px; background: rgba(10,6,0,0.7); border: 0.5px solid var(--orange-bdr); border-radius: 20px; padding: 3px 10px; font-size: 10px; color: var(--orange-lt); cursor: pointer; z-index: 5; transition: background 0.2s; }
 .img-label:hover { background: rgba(232,112,16,0.3); }
 .img-label input[type=file] { display: none; }
-
-/* buttons */
-.back-btn {
-  background: transparent; border: 0.5px solid var(--orange-bdr); border-radius: 8px;
-  padding: 6px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif;
-  cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
-}
+.back-btn { background: transparent; border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 6px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
 .back-btn:hover { background: var(--orange-dim); }
-
 .sub-topbar { display: flex; align-items: center; gap: 16px; padding: 18px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 28px; }
 .sub-topbar .t1 { font-family: 'Cinzel', serif; font-size: 17px; color: #f8dfa0; }
 .sub-topbar .t2 { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
-
-/* form */
 .form-section { margin-bottom: 20px; }
 .form-section-title { font-size: 12px; color: var(--orange-lt); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
 .form-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -129,8 +79,6 @@ label.fl { font-size: 12.5px; color: var(--text-sub); margin-bottom: 5px; displa
 .fi:focus { border-color: var(--orange); }
 .fi::placeholder { color: var(--text-muted); }
 select.fi option { background: #1a1000; }
-
-/* slip */
 .slip-zone { border: 1.5px dashed var(--orange-bdr); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
 .slip-zone:hover, .slip-zone.dragover { background: var(--orange-dim); border-color: var(--orange); }
 .slip-zone input { display: none; }
@@ -138,17 +86,9 @@ select.fi option { background: #1a1000; }
 .slip-zone .sz-hint  { font-size: 13px; color: var(--text-sub); }
 .slip-zone .sz-hint2 { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 #slip-preview { max-width: 100%; max-height: 160px; border-radius: 8px; margin-top: 10px; border: 0.5px solid var(--orange-bdr); }
-
-.submit-btn {
-  background: linear-gradient(135deg, var(--orange), var(--gold));
-  border: none; border-radius: 9px; padding: 13px 36px;
-  font-size: 15px; font-weight: 600; font-family: 'Sarabun', sans-serif;
-  color: #0a0600; cursor: pointer; transition: opacity 0.2s, transform 0.15s;
-}
+.submit-btn { background: linear-gradient(135deg, var(--orange), var(--gold)); border: none; border-radius: 9px; padding: 13px 36px; font-size: 15px; font-weight: 600; font-family: 'Sarabun', sans-serif; color: #0a0600; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
 .submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-/* success */
 .success-wrap { min-height: 300px; display: flex; align-items: center; justify-content: center; }
 .success-card { background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 16px; padding: 36px 40px; text-align: center; max-width: 380px; }
 .success-icon { font-size: 52px; color: #6ed060; margin-bottom: 12px; }
@@ -156,8 +96,6 @@ select.fi option { background: #1a1000; }
 .success-sub { font-size: 13.5px; color: var(--text-sub); margin-bottom: 4px; }
 .reg-number-box { background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 10px 20px; margin: 14px 0; font-family: 'Cinzel', serif; font-size: 20px; color: var(--gold); letter-spacing: 2px; }
 .success-note { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.7; }
-
-/* report */
 .report-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .report-controls .fi { flex: 1; min-width: 180px; }
 .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 0.5px solid var(--border); }
@@ -166,31 +104,28 @@ th { text-align: left; padding: 10px 12px; font-size: 11.5px; font-weight: 500; 
 td { padding: 9px 12px; border-bottom: 0.5px solid rgba(200,130,30,0.07); color: var(--text-main); }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: rgba(200,130,30,0.04); }
-
 .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; white-space: nowrap; }
 .badge-wait { background: rgba(200,140,20,0.13); color: #e0b040; border: 0.5px solid rgba(200,140,20,0.25); }
 .badge-paid { background: rgba(80,200,80,0.12);  color: #70c860; border: 0.5px solid rgba(80,200,80,0.25); }
 .badge-bad  { background: rgba(220,60,60,0.11);  color: #e07070; border: 0.5px solid rgba(220,60,60,0.2); }
 .badge-ok   { background: rgba(60,180,240,0.12); color: #70c8f0; border: 0.5px solid rgba(60,180,240,0.25); }
-
-.status-select { background: var(--bg-card); border: 0.5px solid var(--orange-bdr); border-radius: 6px; padding: 3px 6px; font-size: 11.5px; font-family: 'Sarabun', sans-serif; color: var(--text-main); cursor: pointer; }
-.status-select option { background: #1a1000; }
-
 .refresh-btn { background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 7px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.2s; }
 .refresh-btn:hover { background: rgba(232,112,16,0.28); }
-
 .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #6ed060; margin-right: 5px; vertical-align: middle; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
 .empty-row td { text-align: center; padding: 32px; color: var(--text-muted); }
-
 .notif { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 10px; padding: 12px 20px; font-size: 13.5px; color: var(--text-main); transform: translateY(80px); opacity: 0; transition: transform 0.3s, opacity 0.3s; max-width: 320px; }
 .notif.show { transform: translateY(0); opacity: 1; }
 .notif.err  { border-color: rgba(220,80,80,0.5); }
-
-/* config warning */
 .config-warn { background: rgba(220,80,80,0.1); border: 1px solid rgba(220,80,80,0.4); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 13.5px; color: #f09090; line-height: 1.8; }
 .config-warn strong { color: #f04040; }
+.slip-modal-overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+.slip-modal-overlay.open { display: flex; }
+.slip-modal { background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 14px; padding: 16px; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; gap: 10px; }
+.slip-modal img { max-width: 80vw; max-height: 75vh; border-radius: 8px; object-fit: contain; }
+.slip-modal-close { align-self: flex-end; background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 5px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif; cursor: pointer; }
+.slip-link { color: var(--orange-lt); font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border: 0.5px solid var(--orange-bdr); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+.slip-link:hover { background: var(--orange-dim); }
 </style>
 </head>
 <body>
@@ -211,7 +146,7 @@ tr:hover td { background: rgba(200,130,30,0.04); }
 
   <div id="config-warn" class="config-warn" style="display:none">
     ⚠️ <strong>ยังไม่ได้ตั้งค่า Supabase</strong> — เปิดไฟล์ index.html แล้วแก้
-    <code>SUPABASE_URL</code> และ <code>SUPABASE_KEY</code> ด้านบนของไฟล์ให้ตรงกับโปรเจกต์ของคุณ
+    <code>SUPABASE_URL</code> และ <code>SUPABASE_KEY</code>
   </div>
 
   <div class="hero">
@@ -354,9 +289,9 @@ tr:hover td { background: rgba(200,130,30,0.04); }
   <div class="tbl-wrap">
     <table>
       <thead><tr>
-        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>ชั้น</th><th>รายการ</th><th>สถานะ</th><th>วันที่</th>
+        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>ชั้น</th><th>รายการ</th><th>สลิป</th><th>สถานะ</th><th>วันที่</th>
       </tr></thead>
-      <tbody id="report-tbody"><tr class="empty-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
+      <tbody id="report-tbody"><tr class="empty-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
     </table>
   </div>
   <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="report-count"></div>
@@ -375,27 +310,31 @@ tr:hover td { background: rgba(200,130,30,0.04); }
   </div>
 </div>
 
+</div><!-- #app -->
+
+<!-- ══ SLIP MODAL ══════════════════════════════════════ -->
+<div class="slip-modal-overlay" id="slip-modal" onclick="closeSlipModal(event)">
+  <div class="slip-modal">
+    <button class="slip-modal-close" onclick="document.getElementById('slip-modal').classList.remove('open')">
+      <i class="ti ti-x"></i> ปิด
+    </button>
+    <img id="slip-modal-img" src="" alt="slip">
+  </div>
 </div>
+
 <div class="notif" id="notif"></div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  ⚙️  ตั้งค่า Supabase — แก้ 2 บรรทัดนี้เท่านั้น
-// ═══════════════════════════════════════════════════
 const SUPABASE_URL = 'https://eaagnnywjdgrsoryohvv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CFcxAZjsyT4BkJQ0SRulpQ_sYwmDDOe';
-// ═══════════════════════════════════════════════════
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '';
 
-// ── check config ──────────────────────────────────
 if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
   document.getElementById('config-warn').style.display = 'block';
 }
 
-// ── routing ───────────────────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -403,14 +342,22 @@ function showPage(id) {
   if (id === 'page-home')   loadStats();
 }
 
-// ── notify ────────────────────────────────────────
 function notify(msg, type='ok') {
   const n = document.getElementById('notif');
   n.textContent = msg; n.className = 'notif show' + (type==='err'?' err':'');
   setTimeout(() => n.classList.remove('show'), 3200);
 }
 
-// ── competitions ──────────────────────────────────
+function openSlipModal(url) {
+  document.getElementById('slip-modal-img').src = url;
+  document.getElementById('slip-modal').classList.add('open');
+}
+function closeSlipModal(e) {
+  if (e.target === document.getElementById('slip-modal')) {
+    document.getElementById('slip-modal').classList.remove('open');
+  }
+}
+
 async function loadCompetitions() {
   const { data, error } = await sb.from('competitions').select('*').eq('active', true);
   if (error || !data) {
@@ -428,9 +375,7 @@ function renderCompCards() {
   if (!competitions.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">ไม่มีรายการแข่งขัน</div>'; return; }
   grid.innerHTML = competitions.map((c,i) => `
     <div class="comp-card" onclick="openRegister(${c.id})" data-id="${c.id}">
-      ${c.image_url
-        ? `<img class="bg-img" src="${c.image_url}" alt="">`
-        : `<div class="bg-placeholder">${emojis[i%4]}</div>`}
+      ${c.image_url ? `<img class="bg-img" src="${c.image_url}" alt="">` : `<div class="bg-placeholder">${emojis[i%4]}</div>`}
       <div class="overlay"></div>
       <label class="img-label" onclick="event.stopPropagation()">
         <i class="ti ti-photo"></i> ใส่รูป
@@ -465,7 +410,6 @@ function openRegister(compId) {
   showPage('page-register');
 }
 
-// ── stats ─────────────────────────────────────────
 async function loadStats() {
   const { data } = await sb.from('registrations').select('status, school');
   if (!data) return;
@@ -475,9 +419,12 @@ async function loadStats() {
   document.getElementById('st-schools').textContent = new Set(data.map(r => r.school)).size;
 }
 
-// ── slip ──────────────────────────────────────────
 function handleSlipChange(e) { processSlip(e.target.files[0]); }
-function handleDrop(e) { e.preventDefault(); document.getElementById('slip-zone').classList.remove('dragover'); processSlip(e.dataTransfer.files[0]); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('slip-zone').classList.remove('dragover');
+  processSlip(e.dataTransfer.files[0]);
+}
 function processSlip(file) {
   if (!file) return;
   if (file.size > 5*1024*1024) { notify('ไฟล์ใหญ่เกิน 5MB', 'err'); return; }
@@ -492,38 +439,52 @@ function processSlip(file) {
   };
   reader.readAsDataURL(file);
 }
- 
-// ── register ──────────────────────────────────────
+
 async function submitRegister() {
   const g = id => document.getElementById(id).value.trim();
   const fname=g('r-fname'), lname=g('r-lname'), school=g('r-school'),
         province=g('r-province'), grade=g('r-grade'),
         lvStart=g('r-lv-start'), lvEnd=g('r-lv-end');
 
-  if (!fname||!lname||!school||!province||!grade||!lvStart||!lvEnd) { notify('กรุณากรอกข้อมูลให้ครบ *','err'); return; }
+  if (!fname||!lname||!school||!province||!grade||!lvStart||!lvEnd) {
+    notify('กรุณากรอกข้อมูลให้ครบ *','err'); return;
+  }
   if (!selectedComp) { notify('ไม่พบรายการแข่งขัน','err'); return; }
 
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true; document.getElementById('submit-status').textContent = 'กำลังส่งข้อมูล...';
+  btn.disabled = true;
+  document.getElementById('submit-status').textContent = 'กำลังส่งข้อมูล...';
 
-  // gen reg number
   const { count } = await sb.from('registrations').select('*', {count:'exact',head:true});
   const regNum = `SML${new Date().getFullYear()}${String((count||0)+1).padStart(4,'0')}`;
 
-  // upload slip to Supabase Storage
   let slipUrl = '';
   if (slipBase64) {
     try {
+      document.getElementById('submit-status').textContent = 'กำลังอัปโหลดสลิป...';
       const blob = await (await fetch(slipBase64)).blob();
       const ext  = blob.type.includes('png') ? 'png' : 'jpg';
-      const path = `slips/${regNum}.${ext}`;
+      const path = `${regNum}.${ext}`;
       const { error: upErr } = await sb.storage.from('slips').upload(path, blob);
-      if (!upErr) {
-        const { data: urlData } = sb.storage.from('slips').getPublicUrl(path);
-        slipUrl = urlData.publicUrl;
+      if (upErr) {
+        console.error('Upload error:', upErr);
+        notify('อัปโหลดสลิปไม่สำเร็จ: ' + upErr.message, 'err');
+        btn.disabled = false;
+        document.getElementById('submit-status').textContent = '';
+        return;
       }
-    } catch(e) {}
+      const { data: urlData } = sb.storage.from('slips').getPublicUrl(path);
+      slipUrl = urlData.publicUrl;
+    } catch(e) {
+      console.error('Slip exception:', e);
+      notify('เกิดข้อผิดพลาดกับสลิป: ' + e.message, 'err');
+      btn.disabled = false;
+      document.getElementById('submit-status').textContent = '';
+      return;
+    }
   }
+
+  document.getElementById('submit-status').textContent = 'กำลังบันทึกข้อมูล...';
 
   const { data, error } = await sb.from('registrations').insert([{
     reg_number: regNum, firstname: fname, lastname: lname,
@@ -532,12 +493,13 @@ async function submitRegister() {
     competition: selectedComp.name,
     phone: g('r-phone'),
     slip_url: slipUrl,
-    status: 'รอชำระเงิน'
+    status: 'รอตรวจสอบ'
   }]).select().single();
 
   if (error) {
     notify(error.message || 'เกิดข้อผิดพลาด', 'err');
-    btn.disabled = false; document.getElementById('submit-status').textContent = '';
+    btn.disabled = false;
+    document.getElementById('submit-status').textContent = '';
     return;
   }
 
@@ -564,10 +526,13 @@ function resetRegister() {
   showPage('page-home');
 }
 
-// ── report ────────────────────────────────────────
 async function loadReport() {
   const { data, error } = await sb.from('registrations').select('*').order('created_at', {ascending:false});
-  if (error) { document.getElementById('report-tbody').innerHTML = '<tr class="empty-row"><td colspan="7">โหลดไม่สำเร็จ: '+error.message+'</td></tr>'; return; }
+  if (error) {
+    document.getElementById('report-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="8">โหลดไม่สำเร็จ: '+error.message+'</td></tr>';
+    return;
+  }
   allRegs = data || [];
   filterReport();
 }
@@ -582,41 +547,51 @@ function filterReport() {
   renderReport(filtered);
 }
 
-const badgeClass = { 'รอชำระเงิน':'badge-wait', 'ชำระเงินแล้ว':'badge-paid', 'ยืนยันแล้ว':'badge-ok', 'ไม่สมบูรณ์':'badge-bad' };
+const badgeClass = {
+  'รอตรวจสอบ':  'badge-wait',
+  'รอชำระเงิน': 'badge-wait',
+  'ชำระเงินแล้ว':'badge-paid',
+  'ยืนยันแล้ว': 'badge-ok',
+  'ไม่สมบูรณ์':  'badge-bad'
+};
 
 function renderReport(rows) {
-  document.getElementById('report-count').textContent = `แสดง ${rows.length} จากทั้งหมด ${allRegs.length} รายการ`;
-  if (!rows.length) { document.getElementById('report-tbody').innerHTML = '<tr class="empty-row"><td colspan="7">ไม่พบข้อมูล</td></tr>'; return; }
+  document.getElementById('report-count').textContent =
+    `แสดง ${rows.length} จากทั้งหมด ${allRegs.length} รายการ`;
+  if (!rows.length) {
+    document.getElementById('report-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="8">ไม่พบข้อมูล</td></tr>';
+    return;
+  }
   document.getElementById('report-tbody').innerHTML = rows.map(r => `
     <tr>
       <td style="font-family:monospace;font-size:12px;color:var(--gold)">${r.reg_number}</td>
       <td style="white-space:nowrap">${r.firstname} ${r.lastname}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.school}">${r.school}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.school}">${r.school}</td>
       <td>${r.grade}</td>
-      <td style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.competition}</td>
+      <td style="font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.competition}</td>
       <td>
-        <select class="status-select" onchange="updateStatus('${r.id}',this.value)">
-          ${['รอชำระเงิน','ชำระเงินแล้ว','ยืนยันแล้ว','ไม่สมบูรณ์'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
-        </select>
+        ${r.slip_url
+          ? `<a class="slip-link" href="#" onclick="event.preventDefault();openSlipModal('${r.slip_url}')">
+               <i class="ti ti-photo"></i> ดูสลิป
+             </a>`
+          : `<span style="color:var(--text-muted);font-size:11px">ไม่มี</span>`
+        }
       </td>
+      <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${r.status}</span></td>
       <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${r.created_at?.slice(0,10)||'—'}</td>
     </tr>
   `).join('');
 }
 
-async function updateStatus(id, newStatus) {
-  const { error } = await sb.from('registrations').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id);
-  if (!error) { allRegs.find(r=>r.id===id && (r.status=newStatus)); notify('อัพเดทสถานะแล้ว ✓'); loadStats(); }
-  else notify('อัพเดทไม่สำเร็จ','err');
-}
+sb.channel('registrations').on('postgres_changes',
+  { event:'*', schema:'public', table:'registrations' },
+  () => {
+    if (document.getElementById('page-report').classList.contains('active')) loadReport();
+    loadStats();
+  }
+).subscribe();
 
-// ── real-time subscription ────────────────────────
-sb.channel('registrations').on('postgres_changes', { event:'*', schema:'public', table:'registrations' }, () => {
-  if (document.getElementById('page-report').classList.contains('active')) loadReport();
-  loadStats();
-}).subscribe();
-
-// ── init ──────────────────────────────────────────
 loadCompetitions();
 loadStats();
 </script>
