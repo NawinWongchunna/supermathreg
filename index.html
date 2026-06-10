@@ -334,7 +334,7 @@ const SUPABASE_URL = 'https://eaagnnywjdgrsoryohvv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CFcxAZjsyT4BkJQ0SRulpQ_sYwmDDOe';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '';
+let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
 let personCount = 1;
 
 if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
@@ -510,6 +510,7 @@ function handleDrop(e) {
 }
 function processSlip(file) {
   if (!file) return;
+  slipFile = file;
   if (file.size > 5*1024*1024) { notify('ไฟล์ใหญ่เกิน 5MB', 'err'); return; }
   const reader = new FileReader();
   reader.onload = e => {
@@ -521,6 +522,40 @@ function processSlip(file) {
     document.querySelector('#slip-zone .sz-hint2').textContent = (file.size/1024).toFixed(0) + ' KB';
   };
   reader.readAsDataURL(file);
+}
+
+async function validateSlip(file) {
+  const allowed = ['image/png', 'image/jpeg', 'image/jpg'];
+  if (!allowed.includes(file.type)) {
+    notify('ไฟล์สลิปต้องเป็น JPG หรือ PNG', 'err');
+    return false;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    notify('ไฟล์สลิปต้องไม่เกิน 5MB', 'err');
+    return false;
+  }
+  return new Promise(resolve => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image.width >= 200 && image.height >= 200);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(false);
+    };
+    image.src = url;
+  });
+}
+
+async function uploadSlipToSupabase(file, fileName) {
+  const ext = file.type.includes('png') ? 'png' : 'jpg';
+  const path = `${fileName}.${ext}`;
+  const { error: upErr } = await sb.storage.from('slips').upload(path, file, { upsert: true });
+  if (upErr) return { error: upErr };
+  const { data: urlData, error: urlErr } = await sb.storage.from('slips').getPublicUrl(path);
+  return { url: urlData?.publicUrl, error: urlErr };
 }
 
 // ── register ──────────────────────────────────────
@@ -553,22 +588,26 @@ async function submitRegister() {
 
   // upload slip
   let slipUrl = '';
-  if (slipBase64) {
+  if (slipFile) {
     try {
+      document.getElementById('submit-status').textContent = 'กำลังตรวจสอบสลิป...';
+      const valid = await validateSlip(slipFile);
+      if (!valid) {
+        notify('สลิปไม่ถูกต้องหรือภาพไม่ชัดเจน', 'err');
+        btn.disabled = false;
+        document.getElementById('submit-status').textContent = '';
+        return;
+      }
       document.getElementById('submit-status').textContent = 'กำลังอัปโหลดสลิป...';
-      const blob = await (await fetch(slipBase64)).blob();
-      const ext  = blob.type.includes('png') ? 'png' : 'jpg';
-      const path = `${regNums[0]}.${ext}`;
-      const { error: upErr } = await sb.storage.from('slips').upload(path, blob);
+      const { url, error: upErr } = await uploadSlipToSupabase(slipFile, regNums[0]);
       if (upErr) {
         notify('อัปโหลดสลิปไม่สำเร็จ: ' + upErr.message, 'err');
         btn.disabled = false;
         document.getElementById('submit-status').textContent = '';
         return;
       }
-      const { data: urlData } = sb.storage.from('slips').getPublicUrl(path);
-      slipUrl = urlData.publicUrl;
-    } catch(e) {
+      slipUrl = url || '';
+    } catch (e) {
       notify('เกิดข้อผิดพลาดกับสลิป: ' + e.message, 'err');
       btn.disabled = false;
       document.getElementById('submit-status').textContent = '';
@@ -620,6 +659,7 @@ function resetRegister() {
   document.querySelectorAll('.count-btn').forEach((btn, i) => btn.classList.toggle('active', i === 0));
   renderPersonForms();
   slipBase64 = '';
+  slipFile = null;
   document.getElementById('slip-preview').style.display = 'none';
   document.querySelector('#slip-zone .sz-icon').style.display = 'block';
   document.querySelector('#slip-zone .sz-hint').textContent = 'แนบสลิปการโอนเงิน — คลิกหรือลากไฟล์มาวาง';
