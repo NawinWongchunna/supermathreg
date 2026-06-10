@@ -645,9 +645,9 @@ function renderReport(rows) {
     <tr>
       <td style="font-family:monospace;font-size:12px;color:var(--gold)">${r.reg_number}</td>
       <td style="white-space:nowrap">${r.firstname} ${r.lastname}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.school}">${r.school}</td>
+      <td style="max-width:240px;white-space:normal;word-break:break-word;" title="${r.school}">${r.school}</td>
       <td>${r.grade}</td>
-      <td style="font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.competition}</td>
+      <td style="font-size:12px;max-width:160px;white-space:normal;word-break:break-word;" title="${r.competition}">${r.competition}</td>
       <td>
         ${r.slip_url
           ? `<a class="slip-link" href="#" onclick="event.preventDefault();openSlipModal('${r.slip_url}')">
