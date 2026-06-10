@@ -175,6 +175,8 @@ tr:hover td { background: rgba(200,130,30,0.04); }
 .slip-modal-close { align-self: flex-end; background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 5px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif; cursor: pointer; }
 .slip-link { color: var(--orange-lt); font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border: 0.5px solid var(--orange-bdr); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
 .slip-link:hover { background: var(--orange-dim); }
+.contact-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(232,112,16,0.12); border: 0.5px solid var(--orange-bdr); border-radius: 8px; color: var(--orange-lt); text-decoration: none; font-size: 13px; transition: all 0.3s ease; }
+.contact-link:hover { background: rgba(232,112,16,0.25); border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(232,112,16,0.15); }
 </style>
 </head>
 <body>
@@ -220,6 +222,21 @@ tr:hover td { background: rgba(200,130,30,0.04); }
 
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
     <button class="back-btn" onclick="showPage('page-report')"><i class="ti ti-clipboard-list"></i> รายงานการสมัคร</button>
+  </div>
+
+  <div style="margin-top:48px;padding-top:32px;border-top:0.5px solid var(--border);text-align:center">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">📞 ช่องทางการติดต่อ</div>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:center">
+      <a href="https://www.instagram.com/studentcouncil_law?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(232,112,16,0.12);border:0.5px solid var(--orange-bdr);border-radius:8px;color:var(--orange-lt);text-decoration:none;font-size:13px;transition:background 0.2s">
+        <i class="ti ti-brand-instagram"></i> Instagram
+      </a>
+      <a href="https://www.facebook.com/profile.php?id=61569858092144" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(232,112,16,0.12);border:0.5px solid var(--orange-bdr);border-radius:8px;color:var(--orange-lt);text-decoration:none;font-size:13px;transition:background 0.2s">
+        <i class="ti ti-brand-facebook"></i> Facebook
+      </a>
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(232,112,16,0.12);border:0.5px solid var(--orange-bdr);border-radius:8px;color:var(--orange-lt);font-size:13px">
+        <i class="ti ti-phone"></i> 084-217-4184
+      </div>
+    </div>
   </div>
 </div>
 
@@ -319,7 +336,7 @@ tr:hover td { background: rgba(200,130,30,0.04); }
     <input class="fi" id="search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." oninput="filterReport()">
     <select class="fi" id="status-filter" style="width:160px;flex:none" onchange="filterReport()">
       <option value="">ทุกสถานะ</option>
-      <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ไม่สมบูรณ์</option>
+      <option>รอตรวจสอบ</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
     </select>
     <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
   </div>
@@ -417,19 +434,18 @@ function renderPersonForms() {
         <span class="person-num">คนที่ ${i + 1}</span>
       </div>
       <div class="form-cols">
-        <div class="form-row"><label class="fl">ชื่อ *</label><input class="fi" id="p${i}-fname" placeholder="ชื่อจริง"></div>
+        <div class="form-row"><label class="fl">ชื่อ-คำนำหน้าชื่อ(ไม่ย่อ)</label><input class="fi" id="p${i}-fname" placeholder="ชื่อจริง"></div>
         <div class="form-row"><label class="fl">นามสกุล *</label><input class="fi" id="p${i}-lname" placeholder="นามสกุล"></div>
       </div>
-      <div class="form-row"><label class="fl">โรงเรียน *</label><input class="fi" id="p${i}-school" placeholder="ชื่อโรงเรียนเต็ม"></div>
+      <div class="form-row"><label class="fl">โรงเรียน(ไม่ต้องมีคำว่าโรงเรียน)</label><input class="fi" id="p${i}-school" placeholder="ชื่อโรงเรียนเต็ม"></div>
       <div class="form-cols">
-        <div class="form-row">
-          <label class="fl">จังหวัด *</label>
+        <div class="form-row"><label class="fl">จังหวัด *</label>
           <select class="fi" id="p${i}-province">
             <option value="">-- เลือกจังหวัด --</option>
             ${provinces.map(p => `<option>${p}</option>`).join('')}
           </select>
         </div>
-        <div class="form-row"><label class="fl">เบอร์โทร / อีเมล</label><input class="fi" id="p${i}-phone" placeholder="เพื่อติดต่อกลับ"></div>
+        <div class="form-row"><label class="fl">ชื่อ-สกุล ผู้ควบคุมทีม</label><input class="fi" id="p${i}-coach" placeholder="ชื่อผู้ติดต่อ"></div>
       </div>
       <div class="form-cols">
         <div class="form-row">
@@ -440,11 +456,12 @@ function renderPersonForms() {
           </select>
         </div>
         <div class="form-row">
-          <label class="fl">ระดับการแข่งขัน *</label>
+          <label class="fl">ระดับการแข่งขัน(สามารถเลือกในระดับที่เทียบเท่าหรือสูงกว่า)</label>
           <select class="fi" id="p${i}-level">
             <option value="">-- เลือกระดับ --</option>
-            <option>ม.ต้น</option>
-            <option>ม.ปลาย</option>
+            <option>ประถมศึกษา</option>
+            <option>มัธยมต้น</option>
+            <option>มัธยมปลาย</option>
           </select>
         </div>
       </div>
@@ -585,11 +602,11 @@ async function submitRegister() {
     const fname = g(`p${i}-fname`), lname = g(`p${i}-lname`),
           school = g(`p${i}-school`), province = g(`p${i}-province`),
           grade = g(`p${i}-grade`), level = g(`p${i}-level`),
-          phone = g(`p${i}-phone`);
+          coach = g(`p${i}-coach`);
     if (!fname||!lname||!school||!province||!grade||!level) {
       notify(`กรุณากรอกข้อมูลคนที่ ${i+1} ให้ครบ *`, 'err'); return;
     }
-    persons.push({ fname, lname, school, province, grade, level, phone });
+    persons.push({ fname, lname, school, province, grade, level, coach });
   }
   if (!selectedComp) { notify('ไม่พบรายการแข่งขัน','err'); return; }
 
@@ -641,7 +658,7 @@ async function submitRegister() {
     school: p.school, province: p.province,
     grade: p.grade, level: p.level,
     competition: selectedComp.name,
-    phone: p.phone,
+    coach_name: p.coach,
     slip_url: slipUrl,
     status: 'รอตรวจสอบ'
   }));
@@ -711,7 +728,7 @@ const badgeClass = {
   'รอตรวจสอบ':   'badge-wait',
   'ชำระเงินแล้ว':'badge-paid',
   'ยืนยันแล้ว':  'badge-ok',
-  'ไม่สมบูรณ์':  'badge-bad'
+  'ยืนยันไม่สำเร็จ':'badge-bad'
 };
 
 function renderReport(rows) {
