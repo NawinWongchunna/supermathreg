@@ -485,23 +485,39 @@ async function loadCompetitions() {
 const emojis = ['📐','🔢','🏆','⚖️'];
 function renderCompCards() {
   const grid = document.getElementById('comp-grid');
-  if (!competitions.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">ไม่มีรายการแข่งขัน</div>'; return; }
-  grid.innerHTML = competitions.map((c,i) => `
-    <div class="comp-card" onclick="openRegister(${c.id})" data-id="${c.id}">
-      ${c.image_url ? `<img class="bg-img" src="${c.image_url}" alt="">` : `<div class="bg-placeholder">${emojis[i%4]}</div>`}
-      <div class="overlay"></div>
-      <label class="img-label" onclick="event.stopPropagation()">
-        <i class="ti ti-photo"></i> ใส่รูป
-        <input type="file" accept="image/*" onchange="changeBg(event,${c.id})">
-      </label>
-      <div class="card-body">
-        <div class="card-label">รายการ ${i+1}</div>
-        <div class="card-title">${c.name}</div>
-        <div class="card-date"><i class="ti ti-calendar" style="font-size:11px"></i> ${c.date||'—'}</div>
-        <div class="card-hint">คลิกเพื่อสมัคร →</div>
+  if (!competitions.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">ไม่มีรายการแข่งขัน</div>';
+    return;
+  }
+
+  grid.innerHTML = competitions.map((c, i) => {
+    let bgImageHtml = `<div class="bg-placeholder">${emojis[i % 4]}</div>`;
+    if (!c.image_url) {
+      if (i === 0) bgImageHtml = `<img class="bg-img" src="A-Math.png" alt="A-Math">`;
+      else if (i === 1) bgImageHtml = `<img class="bg-img" src="sudoku.png" alt="Sudoku">`;
+      else if (i === 2) bgImageHtml = `<img class="bg-img" src="crossword.png" alt="Crossword">`;
+      else if (i === 3) bgImageHtml = `<img class="bg-img" src="คำคม.jpg" alt="คำคม">`;
+    } else {
+      bgImageHtml = `<img class="bg-img" src="${c.image_url}" alt="">`;
+    }
+
+    return `
+      <div class="comp-card" onclick="openRegister(${c.id})" data-id="${c.id}">
+        ${bgImageHtml}
+        <div class="overlay"></div>
+        <label class="img-label" onclick="event.stopPropagation()">
+          <i class="ti ti-photo"></i> ใส่รูป
+          <input type="file" accept="image/*" onchange="changeBg(event,${c.id})">
+        </label>
+        <div class="card-body">
+          <div class="card-label">รายการ ${i + 1}</div>
+          <div class="card-title">${c.name}</div>
+          <div class="card-date"><i class="ti ti-calendar" style="font-size:11px"></i> ยังไม่เปิดรับสมัคร</div>
+          <div class="card-hint">คลิกเพื่อสมัคร →</div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function changeBg(event, compId) {
