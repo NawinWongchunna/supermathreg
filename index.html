@@ -25,7 +25,12 @@
   --border:     rgba(200,130,30,0.18);
   --cursor-custom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34' viewBox='0 0 32 34'%3E%3Cpath d='M3 2 L20 18 L14 20 L17 25 L11 27 Z' fill='%230b0907' stroke='%23ff9d1c' stroke-width='2.2' stroke-linejoin='round'/%3E%3Ccircle cx='22' cy='24' r='4' fill='%23ff9d1c' opacity='0.95'/%3E%3C/svg%3E") 4 4, auto;
 }
-body { background: var(--bg-deep); color: var(--text-main); font-family: 'Sarabun', sans-serif; min-height: 100vh; cursor: var(--cursor-custom); }
+body { background: var(--bg-deep); color: var(--text-main); font-family: 'Sarabun', sans-serif; min-height: 100vh; cursor: var(--cursor-custom); scrollbar-color: rgba(232,112,16,0.35) rgba(255,255,255,0.04); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(232,112,16,0.35); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; transition: background 0.2s ease; }
+::-webkit-scrollbar-thumb:hover { background: rgba(232,112,16,0.55); }
+::-webkit-scrollbar-corner { background: transparent; }
 .comp-card,
 .img-label,
 .back-btn,
@@ -183,7 +188,8 @@ select.fi option { background: #1a1000; }
 .report-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .report-controls .fi { flex: 1; min-width: 180px; }
 .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 0.5px solid var(--border); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl-wrap table th:nth-child(3), .tbl-wrap table td.school-cell { white-space: nowrap; }
 th { text-align: left; padding: 10px 12px; font-size: 11.5px; font-weight: 500; color: var(--text-muted); border-bottom: 0.5px solid var(--border); background: rgba(255,255,255,0.02); white-space: nowrap; }
 td { padding: 9px 12px; border-bottom: 0.5px solid rgba(200,130,30,0.07); color: var(--text-main); }
 tr:last-child td { border-bottom: none; }
@@ -203,10 +209,10 @@ tr:hover td { background: rgba(200,130,30,0.04); }
 .notif.err  { border-color: rgba(220,80,80,0.5); }
 .config-warn { background: rgba(220,80,80,0.1); border: 1px solid rgba(220,80,80,0.4); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 13.5px; color: #f09090; line-height: 1.8; }
 .config-warn strong { color: #f04040; }
-.slip-modal-overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+.slip-modal-overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
 .slip-modal-overlay.open { display: flex; }
-.slip-modal { background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 14px; padding: 16px; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; gap: 10px; }
-.slip-modal img { max-width: 80vw; max-height: 75vh; border-radius: 8px; object-fit: contain; }
+.slip-modal { background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 14px; padding: 18px; max-width: 560px; width: min(100%, 560px); max-height: 90vh; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
+.slip-modal img { max-width: 100%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
 .slip-modal-close { align-self: flex-end; background: var(--orange-dim); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 5px 14px; color: var(--gold); font-size: 12.5px; font-family: 'Sarabun', sans-serif; cursor: pointer; }
 .slip-link { color: var(--orange-lt); font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border: 0.5px solid var(--orange-bdr); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
 .slip-link:hover { background: var(--orange-dim); }
@@ -236,7 +242,7 @@ tr:hover td { background: rgba(200,130,30,0.04); }
   </div>
 
   <div class="hero">
-    <div class="hero-tag">เปิดรับสมัครแล้ว</div>
+    <div class="hero-tag">ยังไม่เปิดรับสมัคร</div>
     <h1><span class="hero-highlight">SUPER</span>MATH<br>ระดับประเทศ<br>ครั้งที่ 6</h1>
     <p>เลือกรายการแข่งขันที่ต้องการสมัครด้านล่าง</p>
   </div>
@@ -378,9 +384,9 @@ tr:hover td { background: rgba(200,130,30,0.04); }
   <div class="tbl-wrap">
     <table>
       <thead><tr>
-        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>ชั้น</th><th>รายการ</th><th>สลิป</th><th>สถานะ</th><th>วันที่</th>
+        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>ชั้น</th><th>รายการ</th><th>สลิป</th><th>สถานะ</th><th>หมายเหตุ</th><th>วันที่</th><th>เวลา</th>
       </tr></thead>
-      <tbody id="report-tbody"><tr class="empty-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+      <tbody id="report-tbody"><tr class="empty-row"><td colspan="10">กำลังโหลด...</td></tr></tbody>
     </table>
   </div>
   <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="report-count"></div>
@@ -394,6 +400,15 @@ tr:hover td { background: rgba(200,130,30,0.04); }
       <i class="ti ti-x"></i> ปิด
     </button>
     <img id="slip-modal-img" src="" alt="slip">
+  </div>
+</div>
+
+<div class="slip-modal-overlay" id="remark-modal" onclick="closeRemarkModal(event)">
+  <div class="slip-modal">
+    <button class="slip-modal-close" onclick="document.getElementById('remark-modal').classList.remove('open')">
+      <i class="ti ti-x"></i> ปิด
+    </button>
+    <div id="remark-modal-text" style="white-space:pre-wrap;line-height:1.6;color:var(--text-main);font-size:14px;"></div>
   </div>
 </div>
 
@@ -758,7 +773,7 @@ async function loadReport() {
   const { data, error } = await sb.from('registrations').select('*').order('created_at', {ascending:false});
   if (error) {
     document.getElementById('report-tbody').innerHTML =
-      '<tr class="empty-row"><td colspan="8">โหลดไม่สำเร็จ: '+error.message+'</td></tr>';
+      '<tr class="empty-row"><td colspan="10">โหลดไม่สำเร็จ: '+error.message+'</td></tr>';
     return;
   }
   allRegs = data || [];
@@ -782,19 +797,49 @@ const badgeClass = {
   'ยืนยันไม่สำเร็จ':'badge-bad'
 };
 
+function formatDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value).slice(0, 10);
+  }
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function formatTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value).slice(11, 16).replace(':', '.');
+  }
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(date.getHours())}.${pad(date.getMinutes())}`;
+}
+
+function openRemarkModal(text) {
+  document.getElementById('remark-modal-text').textContent = text || 'ไม่มีหมายเหตุ';
+  document.getElementById('remark-modal').classList.add('open');
+}
+function closeRemarkModal(e) {
+  if (e.target === document.getElementById('remark-modal')) {
+    document.getElementById('remark-modal').classList.remove('open');
+  }
+}
+
 function renderReport(rows) {
   document.getElementById('report-count').textContent =
     `แสดง ${rows.length} จากทั้งหมด ${allRegs.length} รายการ`;
   if (!rows.length) {
     document.getElementById('report-tbody').innerHTML =
-      '<tr class="empty-row"><td colspan="8">ไม่พบข้อมูล</td></tr>';
+      '<tr class="empty-row"><td colspan="10">ไม่พบข้อมูล</td></tr>';
     return;
   }
   document.getElementById('report-tbody').innerHTML = rows.map(r => `
     <tr>
       <td style="font-family:monospace;font-size:12px;color:var(--gold)">${r.reg_number}</td>
       <td style="white-space:nowrap">${r.firstname} ${r.lastname}</td>
-      <td style="max-width:240px;white-space:normal;word-break:break-word;" title="${r.school}">${r.school}</td>
+      <td class="school-cell" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;" title="${r.school}">${r.school}</td>
       <td>${r.grade}</td>
       <td style="font-size:12px;max-width:160px;white-space:normal;word-break:break-word;" title="${r.competition}">${r.competition}</td>
       <td>
@@ -806,7 +851,16 @@ function renderReport(rows) {
         }
       </td>
       <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${r.status}</span></td>
-      <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${r.created_at?.slice(0,10)||'—'}</td>
+      <td>
+        ${r.status === 'ยืนยันไม่สำเร็จ' && r.remark
+          ? `<a class="slip-link remark-link" href="#" data-remark=${JSON.stringify(r.remark)}>
+               <i class="ti ti-file-text"></i> ดูหมายเหตุ
+             </a>`
+          : `<span style="color:var(--text-muted);font-size:11px">-</span>`
+        }
+      </td>
+      <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${formatDate(r.created_at)}</td>
+      <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${formatTime(r.created_at)}</td>
     </tr>
   `).join('');
 }
@@ -818,6 +872,13 @@ sb.channel('registrations').on('postgres_changes',
     loadStats();
   }
 ).subscribe();
+
+document.getElementById('report-tbody').addEventListener('click', e => {
+  const link = e.target.closest('.remark-link');
+  if (!link) return;
+  e.preventDefault();
+  openRemarkModal(link.dataset.remark);
+});
 
 // ── init ──────────────────────────────────────────
 renderPersonForms();
