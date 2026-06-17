@@ -139,6 +139,14 @@ label.fl { font-size: 12.5px; color: var(--text-sub); margin-bottom: 5px; displa
 .fi::placeholder { color: var(--text-muted); }
 select.fi option { background: #1a1000; }
 
+/* receipt accordion */
+.receipt-toggle { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.receipt-btn { background: rgba(232,112,16,0.12); border: 0.5px solid var(--orange-bdr); border-radius: 9px; padding: 13px 36px; font-size: 15px; font-weight: 600; font-family: 'Sarabun', sans-serif; color: var(--gold); cursor: pointer; transition: all 0.2s; flex: 1; min-width: 200px; }
+.receipt-btn.active { background: linear-gradient(135deg, var(--orange), var(--gold)); color: #0a0600; }
+.receipt-section { display: none; }
+.receipt-section.open { display: block; }
+.receipt-status { font-size: 13px; color: var(--text-muted); padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid rgba(232,112,16,0.3); margin-top: 12px; }
+
 /* count selector */
 .count-selector { position: relative; display: inline-block; margin-bottom: 24px; }
 .count-btn { background: var(--bg-card); border: 0.5px solid var(--orange-bdr); border-radius: 8px; padding: 10px 16px; font-size: 14px; font-family: 'Sarabun', sans-serif; color: var(--text-sub); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
@@ -173,8 +181,8 @@ select.fi option { background: #1a1000; }
 .slip-zone .sz-hint2 { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 #slip-preview { max-width: 100%; max-height: 160px; border-radius: 8px; margin-top: 10px; border: 0.5px solid var(--orange-bdr); }
 .submit-btn { background: linear-gradient(135deg, var(--orange), var(--gold)); border: none; border-radius: 9px; padding: 13px 36px; font-size: 15px; font-weight: 600; font-family: 'Sarabun', sans-serif; color: #0a0600; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
-.submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.submit-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; background: linear-gradient(135deg, rgba(232,112,16,0.3), rgba(240,168,48,0.3)); }
 .success-wrap { min-height: 300px; display: flex; align-items: center; justify-content: center; }
 .success-card { background: var(--bg-card); border: 0.5px solid var(--orange-bdr2); border-radius: 16px; padding: 36px 40px; text-align: center; max-width: 420px; }
 .success-icon { font-size: 52px; color: #6ed060; margin-bottom: 12px; }
@@ -316,7 +324,95 @@ tr:hover td { background: rgba(200,130,30,0.04); }
     <!-- ฟอร์มผู้สมัคร -->
     <div id="persons-wrap"></div>
 
-    <!-- ชำระเงิน -->
+    <!-- ตัวเลือกใบเสร็จ -->
+    <div class="form-section">
+      <div class="form-section-title">ตัวเลือกใบเสร็จ</div>
+      <div class="receipt-toggle">
+        <button type="button" class="receipt-btn" id="receipt-yes-btn" onclick="setReceiptOption('yes')">
+          <i class="ti ti-file-text"></i> ต้องการออกใบเสร็จ
+        </button>
+        <button type="button" class="receipt-btn active" id="receipt-no-btn" onclick="setReceiptOption('no')">
+          <i class="ti ti-x"></i> ไม่ต้องการใบเสร็จ
+        </button>
+      </div>
+      <div id="receipt-status-msg" class="receipt-status"><i class="ti ti-info-circle"></i> ไม่ประสงให้ออกใบเสร็จ</div>
+      <input type="hidden" id="receipt-option" value="no">
+
+      <!-- Receipt Details Section -->
+      <div id="receipt-section" class="receipt-section">
+        <!-- รายละเอียดหน่วยงาน/สถาบัน -->
+        <div class="form-section">
+          <div class="form-section-title">รายละเอียดหน่วยงาน/สถาบัน</div>
+          <div class="form-row">
+            <label class="fl">ชื่อหน่วยงาน/สถาบัน (ไม่ต้องมีคำว่า"โรงเรียน") *</label>
+            <input class="fi" id="inst-name" placeholder="ชื่อหน่วยงานเต็ม">
+          </div>
+          <div class="form-cols">
+            <div class="form-row">
+              <label class="fl">รหัสประจำตัวสถานศึกษา/เลขประจำตัวผู้เสียภาษีอากร</label>
+              <input class="fi" id="inst-taxid" placeholder="เช่น 0100300001234">
+            </div>
+            <div class="form-row">
+              <label class="fl">จังหวัด/ภูมิภาค</label>
+              <select class="fi" id="inst-province">
+                <option value="">-- เลือกจังหวัด --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- รายละเอียดผู้ชำระเงิน -->
+        <div class="form-section">
+          <div class="form-section-title">รายละเอียดผู้ชำระเงิน</div>
+          <div class="form-cols">
+            <div class="form-row">
+              <label class="fl">ชื่อผู้ชำระเงิน/หน่วยงาน *</label>
+              <input class="fi" id="payer-name" placeholder="ชื่อบุคคล หรือ ชื่อหน่วยงาน">
+            </div>
+            <div class="form-row">
+              <label class="fl">เลขประจำตัวประชาชน/ทะเบียนการค้า</label>
+              <input class="fi" id="payer-id" placeholder="13 หลัก หรือเลขทะเบียนการค้า">
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="fl">ที่อยู่ของผู้ชำระเงิน</label>
+            <input class="fi" id="payer-address" placeholder="ที่อยู่เต็ม เลขที่ ซอย ถนน">
+          </div>
+          <div class="form-cols">
+            <div class="form-row">
+              <label class="fl">จังหวัด</label>
+              <select class="fi" id="payer-province">
+                <option value="">-- เลือกจังหวัด --</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="fl">เบอร์โทรศัพท์</label>
+              <input class="fi" id="payer-phone" placeholder="0XX-XXX-XXXX" type="tel">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- หมายเหตุเพิ่มเติม -->
+    <div class="form-section">
+      <div class="form-section-title">หมายเหตุเพิ่มเติม</div>
+      <div class="form-row">
+        <label class="fl">ข้อมูลเพิ่มเติม (ถ้ามี)</label>
+        <textarea class="fi" id="additional-note" placeholder="เพิ่มข้อมูลเพิ่มเติมหากต้องการ" style="min-height:80px;font-family:'Sarabun',sans-serif;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <!-- ยินยอมเงื่อนไข -->
+    <div class="form-section">
+      <div class="form-section-title">ยินยอมและเงื่อนไข</div>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:12px;background:rgba(255,255,255,0.02);border:0.5px solid var(--orange-bdr);border-radius:8px">
+        <input type="checkbox" id="terms-agree" style="cursor:pointer;margin-top:4px;width:18px;height:18px" onchange="updateSubmitButton()">
+        <span style="font-size:13.5px;color:var(--text-sub);line-height:1.6">
+          ฉันยินยอมให้ข้อมูลลงทะเบียนของฉันถูกเก็บและใช้เพื่อจัดการรายการแข่งขัน รวมถึงการสื่อสารและการติดตามการชำระเงิน
+        </span>
+      </label>
+    </div>
     <div class="form-section">
       <div class="form-section-title">ชำระค่าสมัคร</div>
       <div class="payment-box">
@@ -412,6 +508,9 @@ tr:hover td { background: rgba(200,130,30,0.04); }
   </div>
 </div>
 
+<!-- Receipt Modal -->
+
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -469,6 +568,12 @@ document.addEventListener('click', event => {
   if (!selector.contains(event.target)) closeCountOptions();
 });
 
+function updateSubmitButton() {
+  const btn = document.getElementById('submit-btn');
+  const isAgreed = document.getElementById('terms-agree').checked;
+  btn.disabled = !isAgreed;
+}
+
 const provinces = ['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
 const grades = ['ป.4','ป.5','ป.6','ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
 
@@ -514,6 +619,10 @@ function renderPersonForms() {
             <option>มัธยมปลาย</option>
           </select>
         </div>
+      </div>
+      <div class="form-row">
+        <label class="fl">เบอร์โทรศัพท์ผู้ติดต่อ</label>
+        <input class="fi" id="p${i}-phone" placeholder="ตัวอย่าง: 081-234-5678" type="tel">
       </div>
     `;
     wrap.appendChild(card);
@@ -589,6 +698,8 @@ function openRegister(compId) {
   personCount = 1;
   document.querySelectorAll('.count-btn').forEach((btn, i) => btn.classList.toggle('active', i === 0));
   renderPersonForms();
+  document.getElementById('terms-agree').checked = false;
+  updateSubmitButton();
   showPage('page-register');
 }
 
@@ -661,6 +772,12 @@ async function uploadSlipToSupabase(file, fileName) {
 
 // ── register ──────────────────────────────────────
 async function submitRegister() {
+  // Check if terms agreed
+  if (!document.getElementById('terms-agree').checked) {
+    notify('กรุณายินยอมเงื่อนไขก่อนส่งข้อมูล', 'err');
+    return;
+  }
+
   // validate all persons
   const persons = [];
   for (let i = 0; i < personCount; i++) {
@@ -668,13 +785,31 @@ async function submitRegister() {
     const fname = g(`p${i}-fname`), lname = g(`p${i}-lname`),
           school = g(`p${i}-school`), province = g(`p${i}-province`),
           grade = g(`p${i}-grade`), level = g(`p${i}-level`),
-          coach = g(`p${i}-coach`);
+          coach = g(`p${i}-coach`), phone = g(`p${i}-phone`);
     if (!fname||!lname||!school||!province||!grade||!level) {
       notify(`กรุณากรอกข้อมูลคนที่ ${i+1} ให้ครบ *`, 'err'); return;
     }
-    persons.push({ fname, lname, school, province, grade, level, coach });
+    persons.push({ fname, lname, school, province, grade, level, coach, phone });
   }
   if (!selectedComp) { notify('ไม่พบรายการแข่งขัน','err'); return; }
+
+  // Validate required fields for receipt
+  const receiptOption = document.getElementById('receipt-option')?.value || 'no';
+  let instName = '', instTaxId = '', instProvince = '', payerName = '', payerId = '', payerAddress = '', payerProvince = '', payerPhone = '';
+  
+  if (receiptOption === 'yes') {
+    instName = document.getElementById('inst-name')?.value.trim() || '';
+    instTaxId = document.getElementById('inst-taxid')?.value.trim() || '';
+    instProvince = document.getElementById('inst-province')?.value.trim() || '';
+    payerName = document.getElementById('payer-name')?.value.trim() || '';
+    payerId = document.getElementById('payer-id')?.value.trim() || '';
+    payerAddress = document.getElementById('payer-address')?.value.trim() || '';
+    payerProvince = document.getElementById('payer-province')?.value.trim() || '';
+    payerPhone = document.getElementById('payer-phone')?.value.trim() || '';
+    
+    if (!instName) { notify('กรุณากรอกชื่อหน่วยงาน/สถาบัน', 'err'); return; }
+    if (!payerName) { notify('กรุณากรอกชื่อผู้ชำระเงิน', 'err'); return; }
+  }
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
@@ -718,6 +853,8 @@ async function submitRegister() {
 
   document.getElementById('submit-status').textContent = 'กำลังบันทึกข้อมูล...';
 
+  const additionalNote = document.getElementById('additional-note')?.value.trim() || '';
+
   const rows = persons.map((p, i) => ({
     reg_number: regNums[i],
     firstname: p.fname, lastname: p.lname,
@@ -725,8 +862,19 @@ async function submitRegister() {
     grade: p.grade, level: p.level,
     competition: selectedComp.name,
     coach_name: p.coach,
+    coach_phone: p.phone,
     slip_url: slipUrl,
-    status: 'รอตรวจสอบ'
+    status: 'รอตรวจสอบ',
+    institution_name: instName,
+    institution_taxid: instTaxId,
+    institution_province: instProvince,
+    payer_name: payerName,
+    payer_id: payerId,
+    payer_address: payerAddress,
+    payer_province: payerProvince,
+    payer_phone: payerPhone,
+    receipt_option: receiptOption,
+    additional_note: additionalNote
   }));
 
   const { error } = await sb.from('registrations').insert(rows);
@@ -736,6 +884,28 @@ async function submitRegister() {
     btn.disabled = false;
     document.getElementById('submit-status').textContent = '';
     return;
+  }
+
+  // บันทึกข้อมูลใบเสร็จหากต้องการ
+  if (receiptOption === 'yes' && regNums.length > 0) {
+    try {
+      const receiptData = {
+        reg_number: regNums[0],
+        institution_name: instName,
+        institution_taxid: instTaxId,
+        institution_province: instProvince,
+        payer_name: payerName,
+        payer_id: payerId,
+        payer_address: payerAddress,
+        payer_province: payerProvince,
+        payer_phone: payerPhone,
+        receipt_issued: false
+      };
+      
+      await sb.from('receipts').insert([receiptData]);
+    } catch (e) {
+      console.error('เก็บข้อมูลใบเสร็จไม่สำเร็จ:', e.message);
+    }
   }
 
   // show success
@@ -765,7 +935,108 @@ function resetRegister() {
   document.querySelector('#slip-zone .sz-icon').style.display = 'block';
   document.querySelector('#slip-zone .sz-hint').textContent = 'แนบสลิปการโอนเงิน — คลิกหรือลากไฟล์มาวาง';
   document.querySelector('#slip-zone .sz-hint2').textContent = 'รองรับ JPG, PNG ขนาดสูงสุด 5MB';
+  // Clear additional fields
+  document.getElementById('inst-name').value = '';
+  document.getElementById('inst-taxid').value = '';
+  document.getElementById('inst-province').value = '';
+  document.getElementById('payer-name').value = '';
+  document.getElementById('payer-id').value = '';
+  document.getElementById('payer-address').value = '';
+  document.getElementById('payer-province').value = '';
+  document.getElementById('payer-phone').value = '';
+  setReceiptOption('no');
+  document.getElementById('additional-note').value = '';
+  document.getElementById('terms-agree').checked = false;
+  updateSubmitButton();
   showPage('page-home');
+}
+
+// ── receipt modal ────────────────────────────────
+let receiptModalOpen = false;
+const provincesForModal = ['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
+
+
+
+function setReceiptOption(option) {
+  document.getElementById('receipt-option').value = option;
+  const yesBtn = document.getElementById('receipt-yes-btn');
+  const noBtn = document.getElementById('receipt-no-btn');
+  const section = document.getElementById('receipt-section');
+  const statusMsg = document.getElementById('receipt-status-msg');
+  
+  if (option === 'yes') {
+    yesBtn.classList.add('active');
+    noBtn.classList.remove('active');
+    section.classList.add('open');
+    statusMsg.innerHTML = '<i class="ti ti-file-text"></i> ประสงให้ออกใบเสร็จ — กรุณากรอกข้อมูลให้ครบ';
+    statusMsg.style.borderLeftColor = 'rgba(110, 208, 96, 0.4)';
+    // Populate provinces
+    const instSel = document.getElementById('inst-province');
+    const payerSel = document.getElementById('payer-province');
+    const opts = provincesForModal.map(p => `<option>${p}</option>`).join('');
+    instSel.innerHTML = '<option value="">-- เลือกจังหวัด --</option>' + opts;
+    payerSel.innerHTML = '<option value="">-- เลือกจังหวัด --</option>' + opts;
+  } else {
+    yesBtn.classList.remove('active');
+    noBtn.classList.add('active');
+    section.classList.remove('open');
+    statusMsg.innerHTML = '<i class="ti ti-info-circle"></i> ไม่ประสงให้ออกใบเสร็จ';
+    statusMsg.style.borderLeftColor = 'rgba(232, 112, 16, 0.3)';
+    // Clear receipt data
+    document.getElementById('inst-name').value = '';
+    document.getElementById('inst-taxid').value = '';
+    document.getElementById('inst-province').value = '';
+    document.getElementById('payer-name').value = '';
+    document.getElementById('payer-id').value = '';
+    document.getElementById('payer-address').value = '';
+    document.getElementById('payer-province').value = '';
+    document.getElementById('payer-phone').value = '';
+  }
+}
+
+// ── receipt management ───────────────────────────
+async function loadReceipts() {
+  const { data, error } = await sb.from('receipts').select('*').order('created_at', {ascending:false});
+  if (error) {
+    console.error('โหลดใบเสร็จไม่สำเร็จ:', error.message);
+    return;
+  }
+  return data || [];
+}
+
+function openReceiptDetailsModal(regNumber) {
+  sb.from('receipts').select('*').eq('reg_number', regNumber).single()
+    .then(({ data, error }) => {
+      if (error || !data) {
+        notify('ไม่พบข้อมูลใบเสร็จ', 'err');
+        return;
+      }
+      
+      let details = `📋 รายละเอียดใบเสร็จ\n\n`;
+      details += `เลขสมัคร: ${data.reg_number}\n\n`;
+      details += `📌 หน่วยงาน/สถาบัน:\n`;
+      details += `  • ชื่อ: ${data.institution_name || '-'}\n`;
+      details += `  • รหัสประจำตัว: ${data.institution_taxid || '-'}\n`;
+      details += `  • จังหวัด: ${data.institution_province || '-'}\n\n`;
+      details += `👤 ผู้ชำระเงิน:\n`;
+      details += `  • ชื่อ: ${data.payer_name || '-'}\n`;
+      details += `  • เลขประจำตัว: ${data.payer_id || '-'}\n`;
+      details += `  • ที่อยู่: ${data.payer_address || '-'}\n`;
+      details += `  • จังหวัด: ${data.payer_province || '-'}\n`;
+      details += `  • เบอร์โทร: ${data.payer_phone || '-'}\n\n`;
+      details += `📅 สถานะ:\n`;
+      details += `  • ออกใบเสร็จ: ${data.receipt_issued ? 'ใช่' : 'ยังไม่'}\n`;
+      if (data.issued_at) {
+        const issueDate = new Date(data.issued_at);
+        details += `  • วันที่ออก: ${issueDate.toLocaleDateString('th-TH')}\n`;
+      }
+      if (data.notes) {
+        details += `\n📝 หมายเหตุ: ${data.notes}`;
+      }
+      
+      document.getElementById('remark-modal-text').textContent = details;
+      document.getElementById('remark-modal').classList.add('open');
+    });
 }
 
 // ── report ────────────────────────────────────────
@@ -884,6 +1155,7 @@ document.getElementById('report-tbody').addEventListener('click', e => {
 renderPersonForms();
 loadCompetitions();
 loadStats();
+setReceiptOption('no');  // Initialize receipt section
 </script>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </body>
