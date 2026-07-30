@@ -24,6 +24,8 @@ CREATE TABLE registrations (
   competition TEXT NOT NULL,
   coach_name TEXT,
   coach_phone TEXT,
+  team_number TEXT,
+  registration_type TEXT DEFAULT 'เดี่ยว',
   slip_url TEXT,
   status TEXT DEFAULT 'รอตรวจสอบ',
   receipt_option TEXT DEFAULT 'no',
@@ -57,5 +59,35 @@ CREATE POLICY "อ่านได้ทุกคน" ON registrations FOR SELECT
 CREATE POLICY "เพิ่มได้ทุกคน" ON registrations FOR INSERT WITH CHECK (true);
 CREATE POLICY "แก้ไขได้ทุกคน" ON registrations FOR UPDATE USING (true);
 
+-- ตารางทีม
+CREATE TABLE teams (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  team_number TEXT UNIQUE,
+  competition TEXT NOT NULL,
+  team_name TEXT NOT NULL,
+  team_leader TEXT NOT NULL,
+  team_phone TEXT,
+  slip_url TEXT,
+  status TEXT DEFAULT 'รอตรวจสอบ',
+  receipt_option TEXT DEFAULT 'no',
+  institution_name TEXT,
+  institution_taxid TEXT,
+  institution_province TEXT,
+  payer_name TEXT,
+  payer_id TEXT,
+  payer_address TEXT,
+  payer_province TEXT,
+  payer_phone TEXT,
+  additional_note TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "อ่านได้ทุกคน" ON teams FOR SELECT USING (true);
+CREATE POLICY "เพิ่มได้ทุกคน" ON teams FOR INSERT WITH CHECK (true);
+CREATE POLICY "แก้ไขได้ทุกคน" ON teams FOR UPDATE USING (true);
+
 -- เปิด Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE registrations;
+ALTER PUBLICATION supabase_realtime ADD TABLE teams;

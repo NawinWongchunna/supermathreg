@@ -659,10 +659,7 @@ function renderCompCards() {
       <div class="comp-card" onclick="openRegister(${c.id})" data-id="${c.id}">
         ${bgImageHtml}
         <div class="overlay"></div>
-        <label class="img-label" onclick="event.stopPropagation()">
-          <i class="ti ti-photo"></i> ใส่รูป
-          <input type="file" accept="image/*" onchange="changeBg(event,${c.id})">
-        </label>
+        
         <div class="card-body">
           <div class="card-label">รายการ ${i + 1}</div>
           <div class="card-title">${c.name}</div>
@@ -1154,5 +1151,12 @@ loadStats();
 setReceiptOption('no');  // Initialize receipt section
 </script>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- Footer: credit / copyright (added per user request) -->
+<footer style="margin-top:18px;padding:14px 12px;text-align:center;background:linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.12));border-top:0.5px solid rgba(255,255,255,0.03);">
+  <div style="font-size:13px;color:rgba(255,255,255,0.18);">© 2568 สภานักเรียนโรงเรียนเลยอนุกูลวิทยา · สงวนลิขสิทธิ์ทุกประการ</div>
+  <div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.12);">จัดทำโดย นาย นาวิน วงษ์จันทร์นา - สภานักเรียนโรงเรียนเลยอนุกูลวิทยา</div>
+</footer>
+
 </body>
 </html>
