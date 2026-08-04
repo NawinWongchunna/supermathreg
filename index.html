@@ -192,6 +192,11 @@ select.fi option { background: #1a1000; }
 .reg-list-item:last-child { border-bottom: none; }
 .reg-list-item .reg-num { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); white-space: nowrap; }
 .success-note { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.7; }
+.report-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.report-tab { background: rgba(255,255,255,0.03); border: 0.5px solid var(--orange-bdr); border-radius: 20px; padding: 6px 16px; font-size: 12.5px; color: var(--text-sub); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; font-family: 'Sarabun', sans-serif; }
+.report-tab:hover { background: var(--orange-dim); color: var(--text-main); }
+.report-tab.active { background: linear-gradient(135deg, var(--orange), var(--gold)); border-color: transparent; color: #0a0600; font-weight: 600; }
+.report-tab .tab-count { opacity: 0.75; margin-left: 4px; font-size: 11px; }
 .report-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .report-controls .fi { flex: 1; min-width: 180px; }
 .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 0.5px solid var(--border); }
@@ -464,6 +469,7 @@ tr:hover td { background: rgba(200,130,30,0.04); }
     <button class="back-btn" onclick="showPage('page-home')"><i class="ti ti-arrow-left"></i> กลับ</button>
     <div><div class="t1">รายงานการสมัคร</div><div class="t2"><span class="live-dot"></span>Real-time</div></div>
   </div>
+  <div class="report-tabs" id="report-tabs"></div>
   <div class="report-controls">
     <input class="fi" id="search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." oninput="filterReport()">
     <select class="fi" id="status-filter" style="width:160px;flex:none" onchange="filterReport()">
@@ -514,6 +520,7 @@ const SUPABASE_KEY = 'sb_publishable_CFcxAZjsyT4BkJQ0SRulpQ_sYwmDDOe';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
+let currentCompFilter = '';
 let personCount = 1;
 
 if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
@@ -625,6 +632,11 @@ function renderPersonForms() {
 }
 
 // ── competitions ──────────────────────────────────
+function regTable(comp) {
+  if (!comp || !comp.slug) return null;
+  return `registrations_${comp.slug}`;
+}
+
 async function loadCompetitions() {
   const { data, error } = await sb.from('competitions').select('*').eq('active', true);
   if (error || !data) {
@@ -634,6 +646,24 @@ async function loadCompetitions() {
   }
   competitions = data;
   renderCompCards();
+  subscribeRegistrationsRealtime();
+}
+
+// subscribe to realtime changes on every per-competition table
+let subscribedSlugs = new Set();
+function subscribeRegistrationsRealtime() {
+  competitions.forEach(c => {
+    const table = regTable(c);
+    if (!table || subscribedSlugs.has(table)) return;
+    subscribedSlugs.add(table);
+    sb.channel(table).on('postgres_changes',
+      { event: '*', schema: 'public', table },
+      () => {
+        if (document.getElementById('page-report').classList.contains('active')) loadReport();
+        loadStats();
+      }
+    ).subscribe();
+  });
 }
 
 const emojis = ['📐','🔢','🏆','⚖️'];
@@ -697,8 +727,12 @@ function openRegister(compId) {
 
 // ── stats ─────────────────────────────────────────
 async function loadStats() {
-  const { data } = await sb.from('registrations').select('status, school');
-  if (!data) return;
+  const tables = competitions.map(regTable).filter(Boolean);
+  if (!tables.length) return;
+  const results = await Promise.all(
+    tables.map(t => sb.from(t).select('status, school'))
+  );
+  const data = results.flatMap(r => r.data || []);
   document.getElementById('st-total').textContent   = data.length;
   document.getElementById('st-paid').textContent    = data.filter(r => r.status === 'ชำระเงินแล้ว' || r.status === 'ยืนยันแล้ว').length;
   document.getElementById('st-pending').textContent = data.filter(r => r.status === 'รอตรวจสอบ').length;
@@ -784,6 +818,11 @@ async function submitRegister() {
     persons.push({ fname, lname, school, province, grade, level, coach, phone });
   }
   if (!selectedComp) { notify('ไม่พบรายการแข่งขัน','err'); return; }
+  const regTableName = regTable(selectedComp);
+  if (!regTableName || !selectedComp.reg_prefix) {
+    notify('รายการนี้ยังไม่ได้ตั้งค่าตารางฐานข้อมูล กรุณาติดต่อผู้ดูแลระบบ', 'err');
+    return;
+  }
 
   // Validate required fields for receipt
   const receiptOption = document.getElementById('receipt-option')?.value || 'no';
@@ -807,11 +846,11 @@ async function submitRegister() {
   btn.disabled = true;
   document.getElementById('submit-status').textContent = 'กำลังส่งข้อมูล...';
 
-  // gen reg numbers
-  const { count } = await sb.from('registrations').select('*', {count:'exact',head:true});
+  // gen reg numbers (นับแยกต่อรายการแข่งขัน)
+  const { count } = await sb.from(regTableName).select('*', {count:'exact',head:true});
   const baseCount = count || 0;
   const regNums = persons.map((_, i) =>
-    `SML${new Date().getFullYear()}${String(baseCount + i + 1).padStart(4,'0')}`
+    `${selectedComp.reg_prefix}${new Date().getFullYear()}${String(baseCount + i + 1).padStart(4,'0')}`
   );
 
   // upload slip
@@ -869,7 +908,7 @@ async function submitRegister() {
     additional_note: additionalNote
   }));
 
-  const { error } = await sb.from('registrations').insert(rows);
+  const { error } = await sb.from(regTableName).insert(rows);
 
   if (error) {
     notify(error.message || 'เกิดข้อผิดพลาด', 'err');
@@ -1033,13 +1072,65 @@ function openReceiptDetailsModal(regNumber) {
 
 // ── report ────────────────────────────────────────
 async function loadReport() {
-  const { data, error } = await sb.from('registrations').select('*').order('created_at', {ascending:false});
-  if (error) {
+  const tables = competitions.map(c => ({ name: c.name, table: regTable(c) })).filter(t => t.table);
+  if (!tables.length) {
     document.getElementById('report-tbody').innerHTML =
-      '<tr class="empty-row"><td colspan="10">โหลดไม่สำเร็จ: '+error.message+'</td></tr>';
+      '<tr class="empty-row"><td colspan="10">ยังไม่มีรายการแข่งขันที่ตั้งค่าตารางไว้</td></tr>';
     return;
   }
-  allRegs = data || [];
+  const results = await Promise.all(
+    tables.map(t => sb.from(t.table).select('*'))
+  );
+  const failed = results.find(r => r.error);
+  if (failed) {
+    document.getElementById('report-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="10">โหลดไม่สำเร็จ: '+failed.error.message+'</td></tr>';
+    return;
+  }
+  allRegs = results.flatMap(r => r.data || []);
+  allRegs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  renderReportTabs();
+  filterReport();
+}
+
+function escapeHtmlAttr(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderReportTabs() {
+  const wrap = document.getElementById('report-tabs');
+  if (!wrap) return;
+  const names = [];
+  competitions.forEach(c => { if (c.name && !names.includes(c.name)) names.push(c.name); });
+  allRegs.forEach(r => { if (r.competition && !names.includes(r.competition)) names.push(r.competition); });
+
+  if (currentCompFilter && !names.includes(currentCompFilter)) currentCompFilter = '';
+
+  let html = `<button type="button" class="report-tab ${currentCompFilter === '' ? 'active' : ''}" data-comp="">
+      ทั้งหมด <span class="tab-count">${allRegs.length}</span>
+    </button>`;
+  names.forEach(name => {
+    const count = allRegs.filter(r => r.competition === name).length;
+    html += `<button type="button" class="report-tab ${currentCompFilter === name ? 'active' : ''}" data-comp="${escapeHtmlAttr(name)}">
+        ${name} <span class="tab-count">${count}</span>
+      </button>`;
+  });
+  wrap.innerHTML = html;
+}
+
+document.getElementById('report-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.report-tab');
+  if (!btn) return;
+  setCompFilter(btn.dataset.comp || '');
+});
+
+function setCompFilter(name) {
+  currentCompFilter = name;
+  renderReportTabs();
   filterReport();
 }
 
@@ -1048,7 +1139,8 @@ function filterReport() {
   const sf = document.getElementById('status-filter').value;
   const filtered = allRegs.filter(r =>
     (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number}`.toLowerCase().includes(search)) &&
-    (!sf || r.status === sf)
+    (!sf || r.status === sf) &&
+    (!currentCompFilter || r.competition === currentCompFilter)
   );
   renderReport(filtered);
 }
@@ -1091,8 +1183,11 @@ function closeRemarkModal(e) {
 }
 
 function renderReport(rows) {
+  const scopeTotal = currentCompFilter
+    ? allRegs.filter(r => r.competition === currentCompFilter).length
+    : allRegs.length;
   document.getElementById('report-count').textContent =
-    `แสดง ${rows.length} จากทั้งหมด ${allRegs.length} รายการ`;
+    `แสดง ${rows.length} จากทั้งหมด ${scopeTotal} รายการ${currentCompFilter ? ` (${currentCompFilter})` : ''}`;
   if (!rows.length) {
     document.getElementById('report-tbody').innerHTML =
       '<tr class="empty-row"><td colspan="10">ไม่พบข้อมูล</td></tr>';
@@ -1128,13 +1223,8 @@ function renderReport(rows) {
   `).join('');
 }
 
-sb.channel('registrations').on('postgres_changes',
-  { event:'*', schema:'public', table:'registrations' },
-  () => {
-    if (document.getElementById('page-report').classList.contains('active')) loadReport();
-    loadStats();
-  }
-).subscribe();
+// realtime: ดูฟังก์ชัน subscribeRegistrationsRealtime() ด้านบน
+// (สมัครติดตามการเปลี่ยนแปลงของทุกตารางย่อยตามรายการแข่งขันอัตโนมัติ)
 
 document.getElementById('report-tbody').addEventListener('click', e => {
   const link = e.target.closest('.remark-link');
@@ -1146,8 +1236,7 @@ document.getElementById('report-tbody').addEventListener('click', e => {
 
 // ── init ──────────────────────────────────────────
 renderPersonForms();
-loadCompetitions();
-loadStats();
+loadCompetitions().then(loadStats);
 setReceiptOption('no');  // Initialize receipt section
 </script>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
