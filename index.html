@@ -197,6 +197,9 @@ select.fi option { background: #1a1000; }
 .report-tab:hover { background: var(--orange-dim); color: var(--text-main); }
 .report-tab.active { background: linear-gradient(135deg, var(--orange), var(--gold)); border-color: transparent; color: #0a0600; font-weight: 600; }
 .report-tab .tab-count { opacity: 0.75; margin-left: 4px; font-size: 11px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 4px; }
+.detail-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.detail-value { font-size: 13.5px; color: var(--text-main); margin-top: 2px; word-break: break-word; }
 .report-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .report-controls .fi { flex: 1; min-width: 180px; }
 .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 0.5px solid var(--border); }
@@ -477,6 +480,7 @@ tr:hover td { background: rgba(200,130,30,0.04); }
       <option>รอตรวจสอบ</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
     </select>
     <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+    <button class="refresh-btn" onclick="openAdminLogin()"><i class="ti ti-lock"></i> แอดมิน</button>
   </div>
   <div class="tbl-wrap">
     <table>
@@ -487,6 +491,32 @@ tr:hover td { background: rgba(200,130,30,0.04); }
     </table>
   </div>
   <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="report-count"></div>
+</div>
+
+<!-- ══ ADMIN ══════════════════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="sub-topbar">
+    <button class="back-btn" onclick="adminLogout()"><i class="ti ti-logout"></i> ออกจากระบบแอดมิน</button>
+    <div><div class="t1">จัดการผู้สมัคร (แอดมิน)</div><div class="t2"><span class="live-dot"></span>Real-time</div></div>
+  </div>
+  <div class="report-tabs" id="admin-tabs"></div>
+  <div class="report-controls">
+    <input class="fi" id="admin-search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." oninput="filterAdminReport()">
+    <select class="fi" id="admin-status-filter" style="width:160px;flex:none" onchange="filterAdminReport()">
+      <option value="">ทุกสถานะ</option>
+      <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
+    </select>
+    <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>รายการ</th><th>สถานะ</th><th>วันที่</th><th>จัดการ</th>
+      </tr></thead>
+      <tbody id="admin-tbody"><tr class="empty-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
+    </table>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="admin-report-count"></div>
 </div>
 
 </div><!-- #app -->
@@ -511,6 +541,27 @@ tr:hover td { background: rgba(200,130,30,0.04); }
 
 <!-- Receipt Modal -->
 
+<div class="slip-modal-overlay" id="admin-login-modal" onclick="closeAdminLoginModal(event)">
+  <div class="slip-modal" style="max-width:360px;text-align:left;">
+    <button class="slip-modal-close" onclick="document.getElementById('admin-login-modal').classList.remove('open')">
+      <i class="ti ti-x"></i> ปิด
+    </button>
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:#f8dfa0;margin-bottom:16px;">เข้าสู่ระบบแอดมิน</div>
+    <label class="fl">รหัสผ่าน</label>
+    <input class="fi" type="password" id="admin-password-input" placeholder="กรอกรหัสผ่าน" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter') adminLogin()">
+    <div id="admin-login-error" style="color:#e07070;font-size:12px;margin-bottom:10px;display:none;"></div>
+    <button class="submit-btn" style="width:100%;padding:10px;" id="admin-login-btn">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<div class="slip-modal-overlay" id="admin-detail-modal" onclick="closeAdminDetailModal(event)">
+  <div class="slip-modal" style="max-width:560px;text-align:left;max-height:88vh;overflow-y:auto;">
+    <button class="slip-modal-close" onclick="document.getElementById('admin-detail-modal').classList.remove('open')">
+      <i class="ti ti-x"></i> ปิด
+    </button>
+    <div id="admin-detail-body"></div>
+  </div>
+</div>
 
 <div class="notif" id="notif"></div>
 
@@ -521,7 +572,21 @@ const SUPABASE_KEY = 'sb_publishable_CFcxAZjsyT4BkJQ0SRulpQ_sYwmDDOe';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
 let currentCompFilter = '';
+let currentAdminCompFilter = '';
 let personCount = 1;
+
+// ── admin ─────────────────────────────────────────
+const ADMIN_EMAIL = 'admin@supermathlaw.internal'; // ผูกกับบัญชีที่สร้างไว้ใน Supabase Auth
+let isAdmin = false;
+
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
   document.getElementById('config-warn').style.display = 'block';
@@ -529,10 +594,51 @@ if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
 
 // ── routing ───────────────────────────────────────
 function showPage(id) {
+  if (id === 'page-admin' && !isAdmin) { openAdminLogin(); return; }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'page-report') loadReport();
+  if (id === 'page-admin')  loadReport();
   if (id === 'page-home')   loadStats();
+  window.scrollTo(0, 0);
+}
+
+// ── admin: login / logout ──────────────────────────
+function openAdminLogin() {
+  document.getElementById('admin-password-input').value = '';
+  document.getElementById('admin-login-error').style.display = 'none';
+  document.getElementById('admin-login-modal').classList.add('open');
+  document.getElementById('admin-password-input').focus();
+}
+function closeAdminLoginModal(e) {
+  if (e.target === document.getElementById('admin-login-modal')) {
+    document.getElementById('admin-login-modal').classList.remove('open');
+  }
+}
+async function adminLogin() {
+  const password = document.getElementById('admin-password-input').value;
+  const errBox = document.getElementById('admin-login-error');
+  errBox.style.display = 'none';
+  if (!password) return;
+  const btn = document.getElementById('admin-login-btn');
+  btn.disabled = true; btn.textContent = 'กำลังเข้าสู่ระบบ...';
+  const { error } = await sb.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+  btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  if (error) {
+    errBox.textContent = 'รหัสผ่านไม่ถูกต้อง';
+    errBox.style.display = 'block';
+    return;
+  }
+  isAdmin = true;
+  document.getElementById('admin-login-modal').classList.remove('open');
+  showPage('page-admin');
+}
+document.getElementById('admin-login-btn').addEventListener('click', adminLogin);
+
+async function adminLogout() {
+  await sb.auth.signOut();
+  isAdmin = false;
+  showPage('page-report');
 }
 
 function notify(msg, type='ok') {
@@ -1091,14 +1197,8 @@ async function loadReport() {
   allRegs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   renderReportTabs();
   filterReport();
-}
-
-function escapeHtmlAttr(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  renderAdminTabs();
+  filterAdminReport();
 }
 
 function renderReportTabs() {
@@ -1115,8 +1215,8 @@ function renderReportTabs() {
     </button>`;
   names.forEach(name => {
     const count = allRegs.filter(r => r.competition === name).length;
-    html += `<button type="button" class="report-tab ${currentCompFilter === name ? 'active' : ''}" data-comp="${escapeHtmlAttr(name)}">
-        ${name} <span class="tab-count">${count}</span>
+    html += `<button type="button" class="report-tab ${currentCompFilter === name ? 'active' : ''}" data-comp="${esc(name)}">
+        ${esc(name)} <span class="tab-count">${count}</span>
       </button>`;
   });
   wrap.innerHTML = html;
@@ -1195,20 +1295,20 @@ function renderReport(rows) {
   }
   document.getElementById('report-tbody').innerHTML = rows.map(r => `
     <tr>
-      <td style="font-family:monospace;font-size:12px;color:var(--gold)">${r.reg_number}</td>
-      <td style="white-space:nowrap">${r.firstname} ${r.lastname}</td>
-      <td class="school-cell" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;" title="${r.school}">${r.school}</td>
-      <td>${r.grade}</td>
-      <td style="font-size:12px;max-width:160px;white-space:normal;word-break:break-word;" title="${r.competition}">${r.competition}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--gold)">${esc(r.reg_number)}</td>
+      <td style="white-space:nowrap">${esc(r.firstname)} ${esc(r.lastname)}</td>
+      <td class="school-cell" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.school)}">${esc(r.school)}</td>
+      <td>${esc(r.grade)}</td>
+      <td style="font-size:12px;max-width:160px;white-space:normal;word-break:break-word;" title="${esc(r.competition)}">${esc(r.competition)}</td>
       <td>
         ${r.slip_url
-          ? `<a class="slip-link" href="#" onclick="event.preventDefault();openSlipModal('${r.slip_url}')">
+          ? `<a class="slip-link" href="#" onclick="event.preventDefault();openSlipModal('${esc(r.slip_url)}')">
                <i class="ti ti-photo"></i> ดูสลิป
              </a>`
           : `<span style="color:var(--text-muted);font-size:11px">ไม่มี</span>`
         }
       </td>
-      <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${r.status}</span></td>
+      <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${esc(r.status)}</span></td>
       <td>
         ${r.status === 'ยืนยันไม่สำเร็จ' && r.remark
           ? `<a class="slip-link remark-link" href="#" data-remark=${JSON.stringify(r.remark)}>
@@ -1232,6 +1332,171 @@ document.getElementById('report-tbody').addEventListener('click', e => {
   e.preventDefault();
   openRemarkModal(link.dataset.remark);
 });
+
+// ── admin: tabs + table ─────────────────────────────
+function renderAdminTabs() {
+  const wrap = document.getElementById('admin-tabs');
+  if (!wrap) return;
+  const names = [];
+  competitions.forEach(c => { if (c.name && !names.includes(c.name)) names.push(c.name); });
+  allRegs.forEach(r => { if (r.competition && !names.includes(r.competition)) names.push(r.competition); });
+
+  if (currentAdminCompFilter && !names.includes(currentAdminCompFilter)) currentAdminCompFilter = '';
+
+  let html = `<button type="button" class="report-tab ${currentAdminCompFilter === '' ? 'active' : ''}" data-comp="">
+      ทั้งหมด <span class="tab-count">${allRegs.length}</span>
+    </button>`;
+  names.forEach(name => {
+    const count = allRegs.filter(r => r.competition === name).length;
+    html += `<button type="button" class="report-tab ${currentAdminCompFilter === name ? 'active' : ''}" data-comp="${esc(name)}">
+        ${esc(name)} <span class="tab-count">${count}</span>
+      </button>`;
+  });
+  wrap.innerHTML = html;
+}
+
+document.getElementById('admin-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.report-tab');
+  if (!btn) return;
+  currentAdminCompFilter = btn.dataset.comp || '';
+  renderAdminTabs();
+  filterAdminReport();
+});
+
+function filterAdminReport() {
+  const searchEl = document.getElementById('admin-search-input');
+  const statusEl = document.getElementById('admin-status-filter');
+  if (!searchEl || !statusEl) return;
+  const search = searchEl.value.toLowerCase();
+  const sf = statusEl.value;
+  const filtered = allRegs.filter(r =>
+    (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number}`.toLowerCase().includes(search)) &&
+    (!sf || r.status === sf) &&
+    (!currentAdminCompFilter || r.competition === currentAdminCompFilter)
+  );
+  renderAdminReport(filtered);
+}
+
+function renderAdminReport(rows) {
+  const tbody = document.getElementById('admin-tbody');
+  if (!tbody) return;
+  const scopeTotal = currentAdminCompFilter
+    ? allRegs.filter(r => r.competition === currentAdminCompFilter).length
+    : allRegs.length;
+  document.getElementById('admin-report-count').textContent =
+    `แสดง ${rows.length} จากทั้งหมด ${scopeTotal} รายการ${currentAdminCompFilter ? ` (${currentAdminCompFilter})` : ''}`;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">ไม่พบข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px;color:var(--gold)">${esc(r.reg_number)}</td>
+      <td style="white-space:nowrap">${esc(r.firstname)} ${esc(r.lastname)}</td>
+      <td class="school-cell" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.school)}">${esc(r.school)}</td>
+      <td style="font-size:12px;max-width:140px;white-space:normal;word-break:break-word;">${esc(r.competition)}</td>
+      <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${esc(r.status)}</span></td>
+      <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${formatDate(r.created_at)}</td>
+      <td><button type="button" class="refresh-btn admin-view-btn" data-id="${esc(r.id)}" data-comp="${esc(r.competition)}">
+        <i class="ti ti-eye"></i> ดูรายละเอียด
+      </button></td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('admin-tbody').addEventListener('click', e => {
+  const btn = e.target.closest('.admin-view-btn');
+  if (!btn) return;
+  openAdminDetail(btn.dataset.id, btn.dataset.comp);
+});
+
+// ── admin: detail + edit modal ──────────────────────
+function findRegById(id, comp) {
+  return allRegs.find(r => String(r.id) === String(id) && r.competition === comp);
+}
+
+function openAdminDetail(id, comp) {
+  const r = findRegById(id, comp);
+  if (!r) { notify('ไม่พบข้อมูล', 'err'); return; }
+  const body = document.getElementById('admin-detail-body');
+  body.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:#f8dfa0;margin-bottom:4px;">${esc(r.firstname)} ${esc(r.lastname)}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">เลขที่สมัคร ${esc(r.reg_number)} · ${esc(r.competition)}</div>
+
+    ${r.slip_url
+      ? `<img src="${esc(r.slip_url)}" style="max-width:100%;border-radius:8px;border:0.5px solid var(--orange-bdr);margin-bottom:16px;">`
+      : `<div style="color:var(--text-muted);font-size:12px;margin-bottom:16px;">ไม่มีสลิป</div>`
+    }
+
+    <div class="detail-grid">
+      <div><span class="detail-label">โรงเรียน</span><div class="detail-value">${esc(r.school)}</div></div>
+      <div><span class="detail-label">จังหวัด</span><div class="detail-value">${esc(r.province) || '-'}</div></div>
+      <div><span class="detail-label">ชั้น</span><div class="detail-value">${esc(r.grade) || '-'}</div></div>
+      <div><span class="detail-label">ระดับ</span><div class="detail-value">${esc(r.level) || '-'}</div></div>
+      <div><span class="detail-label">ครูผู้ควบคุม</span><div class="detail-value">${esc(r.coach_name) || '-'}</div></div>
+      <div><span class="detail-label">เบอร์โทรครู</span><div class="detail-value">${esc(r.coach_phone) || '-'}</div></div>
+    </div>
+
+    ${r.receipt_option === 'yes' ? `
+    <div class="detail-label" style="margin-top:16px;margin-bottom:6px;">ข้อมูลใบเสร็จ</div>
+    <div class="detail-grid">
+      <div><span class="detail-label">หน่วยงาน</span><div class="detail-value">${esc(r.institution_name) || '-'}</div></div>
+      <div><span class="detail-label">เลขผู้เสียภาษี</span><div class="detail-value">${esc(r.institution_taxid) || '-'}</div></div>
+      <div><span class="detail-label">ผู้ชำระเงิน</span><div class="detail-value">${esc(r.payer_name) || '-'}</div></div>
+      <div><span class="detail-label">เบอร์ผู้ชำระ</span><div class="detail-value">${esc(r.payer_phone) || '-'}</div></div>
+      <div style="grid-column:1/-1"><span class="detail-label">ที่อยู่</span><div class="detail-value">${esc(r.payer_address) || '-'}</div></div>
+    </div>` : ''}
+
+    ${r.additional_note
+      ? `<div class="detail-label" style="margin-top:16px;margin-bottom:4px;">หมายเหตุจากผู้สมัคร</div><div class="detail-value">${esc(r.additional_note)}</div>`
+      : ''
+    }
+
+    <div class="detail-label" style="margin-top:20px;margin-bottom:6px;">จัดการสถานะ</div>
+    <select class="fi" id="admin-status-select" style="margin-bottom:10px;">
+      <option value="รอตรวจสอบ" ${r.status === 'รอตรวจสอบ' ? 'selected' : ''}>รอตรวจสอบ</option>
+      <option value="ชำระเงินแล้ว" ${r.status === 'ชำระเงินแล้ว' ? 'selected' : ''}>ชำระเงินแล้ว</option>
+      <option value="ยืนยันแล้ว" ${r.status === 'ยืนยันแล้ว' ? 'selected' : ''}>ยืนยันแล้ว</option>
+      <option value="ยืนยันไม่สำเร็จ" ${r.status === 'ยืนยันไม่สำเร็จ' ? 'selected' : ''}>ยืนยันไม่สำเร็จ</option>
+    </select>
+    <textarea class="fi" id="admin-remark-input" placeholder="หมายเหตุ (กรณีไม่ผ่าน ระบุเหตุผล)" style="min-height:70px;margin-bottom:12px;">${esc(r.remark) || ''}</textarea>
+    <button class="submit-btn" style="width:100%;padding:11px;" id="admin-save-btn">บันทึกการเปลี่ยนแปลง</button>
+    <div id="admin-save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
+  `;
+  document.getElementById('admin-save-btn').onclick = () => saveAdminEdit(r.id, r.competition);
+  document.getElementById('admin-detail-modal').classList.add('open');
+}
+
+function closeAdminDetailModal(e) {
+  if (e.target === document.getElementById('admin-detail-modal')) {
+    document.getElementById('admin-detail-modal').classList.remove('open');
+  }
+}
+
+async function saveAdminEdit(id, comp) {
+  const compObj = competitions.find(c => c.name === comp);
+  const table = regTable(compObj);
+  if (!table) { notify('ไม่พบตารางของรายการนี้', 'err'); return; }
+
+  const status = document.getElementById('admin-status-select').value;
+  const remark = document.getElementById('admin-remark-input').value.trim();
+  const statusEl = document.getElementById('admin-save-status');
+  const btn = document.getElementById('admin-save-btn');
+  btn.disabled = true;
+  statusEl.textContent = 'กำลังบันทึก...';
+
+  const { error } = await sb.from(table).update({ status, remark }).eq('id', id);
+
+  btn.disabled = false;
+  if (error) {
+    statusEl.textContent = '';
+    notify('บันทึกไม่สำเร็จ: ' + error.message, 'err');
+    return;
+  }
+  statusEl.textContent = 'บันทึกแล้ว ✓';
+  notify('บันทึกข้อมูลแล้ว ✓');
+  await loadReport();
+}
 
 
 // ── init ──────────────────────────────────────────
