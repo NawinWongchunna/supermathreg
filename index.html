@@ -10,9 +10,9 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg-deep:    #100a07;
-  --bg-dark:    #1a120b;
-  --bg-card:    #23170d;
+  --bg-deep:    #0a0a0a;
+  --bg-dark:    #141414;
+  --bg-card:    #1c1c1c;
   --orange:     #ff6a00;
   --orange-lt:  #ff9142;
   --orange-dim: rgba(255,106,0,0.18);
@@ -29,87 +29,45 @@
   --surface-4:  rgba(255,255,255,0.07);
   --grid-line:  rgba(255,255,255,0.035);
   --footer-grad: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.12));
-  --button-glow: rgba(255,106,0,0.22);
-  --button-text: #291305;
   --cursor-custom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34' viewBox='0 0 32 34'%3E%3Cpath d='M3 2 L20 18 L14 20 L17 25 L11 27 Z' fill='%230b0907' stroke='%23ff6a00' stroke-width='2.2' stroke-linejoin='round'/%3E%3Ccircle cx='22' cy='24' r='4' fill='%23ff6a00' opacity='0.95'/%3E%3C/svg%3E") 4 4, auto;
 }
 
 body.light-theme {
-  --bg-deep:    #fff7ee;
-  --bg-dark:    #fff0df;
-  --bg-card:    #fffdfa;
-  --orange-dim: rgba(255,106,0,0.12);
+  --bg-deep:    #ffffff;
+  --bg-dark:    #f4f4f4;
+  --bg-card:    #ffffff;
+  --orange-dim: rgba(255,106,0,0.08);
   --orange-bdr: rgba(255,106,0,0.32);
   --orange-bdr2:rgba(255,106,0,0.55);
-  --text-main:  #1f140c;
-  --text-sub:   rgba(31,20,12,0.72);
-  --text-muted: rgba(31,20,12,0.48);
-  --border:     rgba(31,20,12,0.14);
-  --surface-1:  rgba(255,106,0,0.05);
-  --surface-2:  rgba(255,106,0,0.08);
-  --surface-3:  rgba(255,106,0,0.11);
-  --surface-4:  rgba(255,106,0,0.14);
-  --grid-line:  rgba(255,106,0,0.08);
-  --footer-grad: linear-gradient(180deg, rgba(255,106,0,0.04), rgba(255,106,0,0.10));
-  --button-glow: rgba(255,106,0,0.16);
+  --text-main:  #0a0a0a;
+  --text-sub:   rgba(0,0,0,0.65);
+  --text-muted: rgba(0,0,0,0.42);
+  --border:     rgba(0,0,0,0.14);
+  --surface-1:  rgba(0,0,0,0.025);
+  --surface-2:  rgba(0,0,0,0.035);
+  --surface-3:  rgba(0,0,0,0.05);
+  --surface-4:  rgba(0,0,0,0.08);
+  --grid-line:  rgba(0,0,0,0.05);
+  --footer-grad: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.05));
   --cursor-custom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34' viewBox='0 0 32 34'%3E%3Cpath d='M3 2 L20 18 L14 20 L17 25 L11 27 Z' fill='%23ffffff' stroke='%23ff6a00' stroke-width='2.2' stroke-linejoin='round'/%3E%3Ccircle cx='22' cy='24' r='4' fill='%23ff6a00' opacity='0.95'/%3E%3C/svg%3E") 4 4, auto;
 }
 
 .theme-toggle-btn {
-  display: flex; align-items: center; gap: 4px;
-  padding: 5px; border-radius: 999px;
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  cursor: var(--cursor-custom);
-  transition: box-shadow 0.25s ease, filter 0.25s ease, transform 0.25s ease, background 0.2s ease;
-  box-shadow: 0 6px 14px var(--button-glow);
-}
-.theme-toggle-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(255,106,0,0.20);
-}
-.theme-toggle-btn:active { transform: scale(0.97); }
-.theme-toggle-btn .theme-opt {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--surface-2); border: 0.5px solid var(--orange-bdr);
+  color: var(--gold); font-size: 16px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted);
-  background: transparent;
-  transition: color 0.3s ease, background 0.35s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: var(--cursor-custom); transition: background 0.2s, transform 0.2s;
 }
-.theme-toggle-btn .theme-opt svg { width: 18px; height: 18px; transition: transform 0.35s ease; }
-.theme-toggle-btn .theme-opt.is-active {
-  background: linear-gradient(135deg, var(--orange), var(--gold));
-  color: var(--button-text);
-  box-shadow: 0 4px 12px rgba(255,106,0,0.35);
-  transform: scale(1.06);
-}
-.theme-toggle-btn .theme-opt:not(.is-active):hover { color: var(--orange-lt); }
-.theme-toggle-btn .theme-opt.is-active svg { transform: scale(1.05); }
+.theme-toggle-btn:hover { background: var(--orange-dim); transform: rotate(18deg); }
 
-/* burst / ripple theme-transition covering the whole page from the toggle button */
-::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
-::view-transition-new(root) { animation: none; mix-blend-mode: normal; z-index: 9999; }
-
-.back-btn,
-.receipt-btn,
-.count-btn,
-.refresh-btn,
-.slip-modal-close,
-.contact-link,
-.report-tab {
-  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.2s ease, color 0.2s ease;
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
-.back-btn:hover,
-.receipt-btn:hover,
-.count-btn:hover,
-.refresh-btn:hover,
-.slip-modal-close:hover,
-.contact-link:hover,
-.report-tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px var(--button-glow);
-}
-
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
 body { background: var(--bg-deep); color: var(--text-main); font-family: 'Sarabun', sans-serif; min-height: 100vh; cursor: var(--cursor-custom); scrollbar-color: rgba(255,106,0,0.35) var(--surface-3); scrollbar-width: thin; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--surface-3); border-radius: 999px; }
@@ -155,6 +113,23 @@ body::after {
 .logo-text .sub   { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: -2px; }
 .year-badge { background: linear-gradient(135deg, rgba(255,106,0,0.16), rgba(255,171,94,0.18)); border: 0.5px solid var(--orange-bdr); border-radius: 24px; padding: 6px 18px; font-size: 12px; color: var(--gold); }
 .hero { text-align: center; padding: 18px 0 34px; margin-bottom: 10px; }
+.countdown-wrap { margin-top: 22px; }
+.countdown-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.countdown-row { display: flex; justify-content: center; gap: 10px; }
+.cd-box { background: var(--surface-2); border: 0.5px solid var(--orange-bdr); border-radius: 10px; padding: 10px 14px; min-width: 58px; }
+.cd-num { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: var(--gold); line-height: 1; }
+.cd-unit { font-size: 10.5px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.5px; }
+.timeline-section { margin: 40px 0 32px; }
+.timeline-row { display: flex; align-items: flex-start; justify-content: center; gap: 0; flex-wrap: wrap; }
+.tl-item { display: flex; flex-direction: column; align-items: center; text-align: center; width: 130px; }
+.tl-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--orange-dim); border: 1px solid var(--orange-bdr2); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 17px; margin-bottom: 10px; }
+.tl-title { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; }
+.tl-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.tl-line { flex: 1; min-width: 24px; height: 1px; background: var(--orange-bdr); margin-top: 20px; align-self: flex-start; }
+@media(max-width:600px){ .tl-line { display: none; } .timeline-row { gap: 18px; } }
+.floating-symbols { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.floating-symbols span { position: absolute; color: var(--orange); opacity: 0.07; font-family: 'Cinzel', serif; animation: float-sym linear infinite; }
+@keyframes float-sym { 0% { transform: translateY(110vh) rotate(0deg); } 100% { transform: translateY(-10vh) rotate(360deg); } }
 .hero-tag { display: inline-block; background: rgba(255,106,0,0.16); border: 1px solid rgba(255,106,0,0.30); border-radius: 22px; padding: 6px 20px; font-size: 12px; color: var(--orange-lt); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
   .hero h1 { font-family: 'Cinzel', serif; font-size: 36px; color: var(--text-main); line-height: 1.24; margin-bottom: 12px; letter-spacing: 0.04em; word-spacing: 0.08em; text-shadow: 0 12px 20px rgba(0,0,0,0.16); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
   .hero h1 .hero-highlight { display: inline; background: linear-gradient(135deg, #ffab5e, #ff6a00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
@@ -181,8 +156,8 @@ body::after {
 .stat-item .desc { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; text-align: center; }
 .comp-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-bottom: 32px; }
 @media(min-width:600px){ .comp-grid { grid-template-columns: repeat(4,1fr); } }
-.comp-card { position: relative; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--orange-bdr); cursor: pointer; aspect-ratio: 3/4; transition: transform 0.2s, border-color 0.2s; background: var(--bg-card); }
-.comp-card:hover { transform: translateY(-4px); border-color: var(--orange-bdr2); }
+.comp-card { position: relative; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--orange-bdr); cursor: pointer; aspect-ratio: 3/4; transition: transform 0.25s ease, border-color 0.25s, box-shadow 0.25s; background: var(--bg-card); }
+.comp-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--orange-bdr2); box-shadow: 0 14px 30px rgba(255,106,0,0.22); }
 .comp-card:active { transform: scale(0.97); }
 .comp-card .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.38; transition: opacity 0.3s; }
 .comp-card:hover .bg-img { opacity: 0.52; }
@@ -305,9 +280,12 @@ tr:hover td { background: var(--surface-3); }
 .slip-link:hover { background: var(--orange-dim); }
 .contact-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(255,106,0,0.12); border: 0.5px solid var(--orange-bdr); border-radius: 8px; color: var(--orange-lt); text-decoration: none; font-size: 13px; transition: all 0.3s ease; }
 .contact-link:hover { background: rgba(255,106,0,0.25); border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,106,0,0.15); }
+
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div class="floating-symbols" id="floating-symbols"></div>
 <div id="app">
 
 <!-- ══ HOME ══════════════════════════════════════════ -->
@@ -321,14 +299,9 @@ tr:hover td { background: var(--surface-3); }
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <div id="theme-toggle-btn" class="theme-toggle-btn" title="สลับโหมดสว่าง/มืด">
-        <span class="theme-opt" id="theme-opt-dark" onclick="setTheme('dark', event)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 14.6A8.2 8.2 0 1 1 9.4 3.8a6.6 6.6 0 0 0 10.8 10.8z"/></svg>
-        </span>
-        <span class="theme-opt" id="theme-opt-light" onclick="setTheme('light', event)">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.3" fill="currentColor"/><circle cx="12" cy="3.2" r="1.3" fill="currentColor"/><circle cx="12" cy="20.8" r="1.3" fill="currentColor"/><circle cx="3.2" cy="12" r="1.3" fill="currentColor"/><circle cx="20.8" cy="12" r="1.3" fill="currentColor"/><circle cx="5.8" cy="5.8" r="1.05" fill="currentColor"/><circle cx="18.2" cy="18.2" r="1.05" fill="currentColor"/><circle cx="5.8" cy="18.2" r="1.05" fill="currentColor"/><circle cx="18.2" cy="5.8" r="1.05" fill="currentColor"/></svg>
-        </span>
-      </div>
+      <button type="button" id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="สลับโหมดสว่าง/มืด">
+        <i class="ti ti-sun" id="theme-toggle-icon"></i>
+      </button>
       <div class="year-badge">ปี 2569</div>
     </div>
   </div>
@@ -342,6 +315,16 @@ tr:hover td { background: var(--surface-3); }
     <div class="hero-tag">ยังไม่เปิดรับสมัคร</div>
     <h1><span class="hero-highlight">SUPER</span>MATH<br>ระดับประเทศ<br>ครั้งที่ 6</h1>
     <p>เลือกรายการแข่งขันที่ต้องการสมัครด้านล่าง</p>
+
+    <div class="countdown-wrap">
+      <div class="countdown-label">คาดว่าจะเปิดรับสมัคร พฤศจิกายน 2569</div>
+      <div class="countdown-row" id="countdown-row">
+        <div class="cd-box"><div class="cd-num" id="cd-days">--</div><div class="cd-unit">วัน</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-hours">--</div><div class="cd-unit">ชม.</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-mins">--</div><div class="cd-unit">นาที</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-secs">--</div><div class="cd-unit">วิ</div></div>
+      </div>
+    </div>
   </div>
 
   <div class="stats-row">
@@ -355,6 +338,35 @@ tr:hover td { background: var(--surface-3); }
     <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">
       <i class="ti ti-loader" style="font-size:22px;animation:spin 1s linear infinite;display:block;margin-bottom:8px"></i>
       กำลังโหลด...
+    </div>
+  </div>
+
+  <div class="timeline-section">
+    <div class="form-section-title" style="text-align:center;margin-bottom:22px;">กำหนดการแข่งขัน</div>
+    <div class="timeline-row">
+      <div class="tl-item">
+        <div class="tl-dot"><i class="ti ti-edit"></i></div>
+        <div class="tl-title">เปิดรับสมัคร</div>
+        <div class="tl-desc">พฤศจิกายน 2569 (คาดการณ์)</div>
+      </div>
+      <div class="tl-line"></div>
+      <div class="tl-item">
+        <div class="tl-dot"><i class="ti ti-clock"></i></div>
+        <div class="tl-title">ปิดรับสมัคร</div>
+        <div class="tl-desc">รอประกาศ</div>
+      </div>
+      <div class="tl-line"></div>
+      <div class="tl-item">
+        <div class="tl-dot"><i class="ti ti-trophy"></i></div>
+        <div class="tl-title">วันแข่งขัน</div>
+        <div class="tl-desc">รอประกาศ</div>
+      </div>
+      <div class="tl-line"></div>
+      <div class="tl-item">
+        <div class="tl-dot"><i class="ti ti-award"></i></div>
+        <div class="tl-title">ประกาศผล</div>
+        <div class="tl-desc">รอประกาศ</div>
+      </div>
     </div>
   </div>
 
@@ -397,15 +409,6 @@ tr:hover td { background: var(--surface-3); }
         </button>
         <div class="count-dropdown" id="count-dropdown">
           <button class="count-option" type="button" onclick="setCount(1)">1 คน</button>
-          <button class="count-option" type="button" onclick="setCount(2)">2 คน</button>
-          <button class="count-option" type="button" onclick="setCount(3)">3 คน</button>
-          <button class="count-option" type="button" onclick="setCount(4)">4 คน</button>
-          <button class="count-option" type="button" onclick="setCount(5)">5 คน</button>
-          <button class="count-option" type="button" onclick="setCount(6)">6 คน</button>
-          <button class="count-option" type="button" onclick="setCount(7)">7 คน</button>
-          <button class="count-option" type="button" onclick="setCount(8)">8 คน</button>
-          <button class="count-option" type="button" onclick="setCount(9)">9 คน</button>
-          <button class="count-option" type="button" onclick="setCount(10)">10 คน</button>
         </div>
       </div>
     </div>
@@ -506,9 +509,9 @@ tr:hover td { background: var(--surface-3); }
       <div class="form-section-title">ชำระค่าสมัคร</div>
       <div class="payment-box">
         <div class="payment-info">
-          <div class="bank-name">ธนาคาร XXX</div>
-          <div class="acc-num">XXX-X-XXXXX-X</div>
-          <div class="acc-name">ชื่อบัญชี: XXXXXXXXXX</div>
+          <div class="bank-name">ธนาคาร กรุงไทย สาขาเลย</div>
+          <div class="acc-num">403-3-166-17-3</div>
+          <div class="acc-name">ชื่อบัญชี: กิจกรรม SUPER MATH โรงเรียนเลยอนุกูลวิทยา</div>
           <div class="amount">ค่าสมัคร 150 บาท / คน</div>
         </div>
       </div>
@@ -581,24 +584,54 @@ tr:hover td { background: var(--surface-3); }
     <button class="back-btn" onclick="adminLogout()"><i class="ti ti-logout"></i> ออกจากระบบแอดมิน</button>
     <div><div class="t1">จัดการผู้สมัคร (แอดมิน)</div><div class="t2"><span class="live-dot"></span>Real-time</div></div>
   </div>
-  <div class="report-tabs" id="admin-tabs"></div>
-  <div class="report-controls">
-    <input class="fi" id="admin-search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." oninput="filterAdminReport()">
-    <select class="fi" id="admin-status-filter" style="width:160px;flex:none" onchange="filterAdminReport()">
-      <option value="">ทุกสถานะ</option>
-      <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
-    </select>
-    <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+
+  <div class="report-tabs" style="margin-bottom:18px;">
+    <button type="button" class="report-tab admin-subnav-btn active" data-view="regs">
+      <i class="ti ti-users"></i> รายชื่อผู้สมัคร
+    </button>
+    <button type="button" class="report-tab admin-subnav-btn" data-view="invoices">
+      <i class="ti ti-receipt"></i> ใบกำกับภาษี
+    </button>
   </div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr>
-        <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>รายการ</th><th>สถานะ</th><th>วันที่</th><th>จัดการ</th>
-      </tr></thead>
-      <tbody id="admin-tbody"><tr class="empty-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
-    </table>
+
+  <!-- ── view: registrants ── -->
+  <div id="admin-view-regs">
+    <div class="report-tabs" id="admin-tabs"></div>
+    <div class="report-controls">
+      <input class="fi" id="admin-search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร / เลขอ้างอิง..." oninput="filterAdminReport()">
+      <select class="fi" id="admin-status-filter" style="width:160px;flex:none" onchange="filterAdminReport()">
+        <option value="">ทุกสถานะ</option>
+        <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
+      </select>
+      <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>เลขสมัคร</th><th>ชื่อ-สกุล</th><th>โรงเรียน</th><th>รายการ</th><th>เลขอ้างอิง</th><th>สถานะ</th><th>วันที่</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody id="admin-tbody"><tr class="empty-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="admin-report-count"></div>
   </div>
-  <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="admin-report-count"></div>
+
+  <!-- ── view: tax invoices (แยกจากรายชื่อผู้สมัคร) ── -->
+  <div id="admin-view-invoices" style="display:none;">
+    <div class="report-controls">
+      <input class="fi" id="admin-invoice-search" placeholder="ค้นหาชื่อหน่วยงาน / ผู้ชำระเงิน / เลขสมัคร..." oninput="filterAdminInvoices()">
+      <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>เลขสมัคร</th><th>ผู้สมัคร</th><th>รายการ</th><th>หน่วยงาน</th><th>เลขผู้เสียภาษี</th><th>ผู้ชำระเงิน</th><th>เบอร์โทร</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody id="admin-invoice-tbody"><tr class="empty-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:10px" id="admin-invoice-count"></div>
+  </div>
 </div>
 
 </div><!-- #app -->
@@ -645,20 +678,36 @@ tr:hover td { background: var(--surface-3); }
   </div>
 </div>
 
+<div class="slip-modal-overlay" id="admin-group-modal" onclick="closeAdminGroupModal(event)">
+  <div class="slip-modal" style="max-width:480px;text-align:left;max-height:88vh;overflow-y:auto;">
+    <button class="slip-modal-close" onclick="document.getElementById('admin-group-modal').classList.remove('open')">
+      <i class="ti ti-x"></i> ปิด
+    </button>
+    <div id="admin-group-body"></div>
+  </div>
+</div>
+
 <div class="notif" id="notif"></div>
 
 <script>
+// ══════════════════════════════════════════════════════
+// CONFIG — แก้ค่าตรงนี้ตอนติดตั้งใหม่ / เปลี่ยนบัญชี Supabase
+// ══════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://eaagnnywjdgrsoryohvv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CFcxAZjsyT4BkJQ0SRulpQ_sYwmDDOe';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// อีเมลบัญชีแอดมิน (ต้องตรงกับที่สร้างไว้ใน Supabase → Authentication → Users)
+const ADMIN_EMAIL = 'admin@supermathlaw.internal';
+
+
 let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
 let currentCompFilter = '';
 let currentAdminCompFilter = '';
 let personCount = 1;
 
 // ── admin ─────────────────────────────────────────
-const ADMIN_EMAIL = 'admin@supermathlaw.internal'; // ผูกกับบัญชีที่สร้างไว้ใน Supabase Auth
 let isAdmin = false;
 
 function esc(str) {
@@ -1281,6 +1330,7 @@ async function loadReport() {
   filterReport();
   renderAdminTabs();
   filterAdminReport();
+  filterAdminInvoices();
 }
 
 function renderReportTabs() {
@@ -1445,50 +1495,128 @@ document.getElementById('admin-tabs').addEventListener('click', e => {
   filterAdminReport();
 });
 
+function regGroupKey(r) {
+  return `${r.created_at}|${r.competition}`;
+}
+
 function filterAdminReport() {
   const searchEl = document.getElementById('admin-search-input');
   const statusEl = document.getElementById('admin-status-filter');
   if (!searchEl || !statusEl) return;
   const search = searchEl.value.toLowerCase();
   const sf = statusEl.value;
-  const filtered = allRegs.filter(r =>
-    (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number}`.toLowerCase().includes(search)) &&
-    (!sf || r.status === sf) &&
-    (!currentAdminCompFilter || r.competition === currentAdminCompFilter)
-  );
-  renderAdminReport(filtered);
+
+  const scoped = allRegs.filter(r => !currentAdminCompFilter || r.competition === currentAdminCompFilter);
+
+  // จัดกลุ่มคนที่สมัครพร้อมกันในใบเดียว (created_at + รายการแข่งขันตรงกัน = สมัครพร้อมกัน)
+  const groups = new Map();
+  scoped.forEach(r => {
+    const key = regGroupKey(r);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  const matches = r =>
+    (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number} ${r.payment_ref||''}`.toLowerCase().includes(search)) &&
+    (!sf || r.status === sf);
+
+  const groupRows = [];
+  groups.forEach(members => {
+    if (!members.some(matches)) return;
+    members.sort((a, b) => String(a.reg_number).localeCompare(String(b.reg_number)));
+    groupRows.push({ rep: members[0], members });
+  });
+  groupRows.sort((a, b) => new Date(b.rep.created_at) - new Date(a.rep.created_at));
+
+  renderAdminReport(groupRows, scoped.length);
 }
 
-function renderAdminReport(rows) {
+function renderAdminReport(groupRows, scopeTotal) {
   const tbody = document.getElementById('admin-tbody');
   if (!tbody) return;
-  const scopeTotal = currentAdminCompFilter
-    ? allRegs.filter(r => r.competition === currentAdminCompFilter).length
-    : allRegs.length;
+  const total = typeof scopeTotal === 'number' ? scopeTotal
+    : (currentAdminCompFilter ? allRegs.filter(r => r.competition === currentAdminCompFilter).length : allRegs.length);
+  const shownPeople = groupRows.reduce((sum, g) => sum + g.members.length, 0);
   document.getElementById('admin-report-count').textContent =
-    `แสดง ${rows.length} จากทั้งหมด ${scopeTotal} รายการ${currentAdminCompFilter ? ` (${currentAdminCompFilter})` : ''}`;
-  if (!rows.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">ไม่พบข้อมูล</td></tr>';
+    `แสดง ${shownPeople} จากทั้งหมด ${total} รายการ${currentAdminCompFilter ? ` (${currentAdminCompFilter})` : ''}`;
+  if (!groupRows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">ไม่พบข้อมูล</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(r => `
+  tbody.innerHTML = groupRows.map(({ rep: r, members }) => `
     <tr>
       <td style="font-family:monospace;font-size:12px;color:var(--gold)">${esc(r.reg_number)}</td>
-      <td style="white-space:nowrap">${esc(r.firstname)} ${esc(r.lastname)}</td>
+      <td style="white-space:nowrap">${esc(r.firstname)} ${esc(r.lastname)}${members.length > 1 ? ` <span class="tab-count" style="opacity:1;color:var(--gold)">+${members.length - 1} คน</span>` : ''}</td>
       <td class="school-cell" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.school)}">${esc(r.school)}</td>
       <td style="font-size:12px;max-width:140px;white-space:normal;word-break:break-word;">${esc(r.competition)}</td>
-      <td><span class="badge ${badgeClass[r.status]||'badge-wait'}">${esc(r.status)}</span></td>
+      <td style="font-family:monospace;font-size:11.5px;color:var(--text-sub);white-space:nowrap">${r.payment_ref ? esc(r.payment_ref) : '<span style="color:var(--text-muted)">-</span>'}</td>
+      <td>${members.length > 1
+        ? `<span style="font-size:11px;color:var(--text-muted)">${members.length} สถานะ</span>`
+        : `<span class="badge ${badgeClass[r.status]||'badge-wait'}">${esc(r.status)}</span>`
+      }</td>
       <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap">${formatDate(r.created_at)}</td>
-      <td><button type="button" class="refresh-btn admin-view-btn" data-id="${esc(r.id)}" data-comp="${esc(r.competition)}">
-        <i class="ti ti-eye"></i> ดูรายละเอียด
-      </button></td>
+      <td>${members.length > 1
+        ? `<button type="button" class="refresh-btn admin-group-btn" data-key="${esc(regGroupKey(r))}">
+             <i class="ti ti-users"></i> ดูรายชื่อกลุ่ม (${members.length})
+           </button>`
+        : `<button type="button" class="refresh-btn admin-view-btn" data-id="${esc(r.id)}" data-comp="${esc(r.competition)}">
+             <i class="ti ti-eye"></i> ดูรายละเอียด
+           </button>`
+      }</td>
     </tr>
   `).join('');
 }
 
 document.getElementById('admin-tbody').addEventListener('click', e => {
+  const groupBtn = e.target.closest('.admin-group-btn');
+  if (groupBtn) { openAdminGroupModal(groupBtn.dataset.key); return; }
   const btn = e.target.closest('.admin-view-btn');
   if (!btn) return;
+  openAdminDetail(btn.dataset.id, btn.dataset.comp);
+});
+
+// ── admin: group list modal ─────────────────────────
+function openAdminGroupModal(key) {
+  const members = allRegs.filter(r => regGroupKey(r) === key)
+    .sort((a, b) => String(a.reg_number).localeCompare(String(b.reg_number)));
+  if (!members.length) { notify('ไม่พบข้อมูลกลุ่ม', 'err'); return; }
+
+  const body = document.getElementById('admin-group-body');
+  body.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--text-main);margin-bottom:4px;">
+      กลุ่มที่สมัครพร้อมกัน (${members.length} คน)
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">${esc(members[0].competition)} · ${formatDate(members[0].created_at)}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${members.map(m => `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--surface-1);border:0.5px solid var(--border);border-radius:10px;">
+          <div style="min-width:0;">
+            <div style="font-family:monospace;font-size:12px;color:var(--gold);">${esc(m.reg_number)}</div>
+            <div style="font-size:13.5px;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(m.firstname)} ${esc(m.lastname)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex:none;">
+            <span class="badge ${badgeClass[m.status]||'badge-wait'}">${esc(m.status)}</span>
+            <button type="button" class="refresh-btn admin-group-member-btn" data-id="${esc(m.id)}" data-comp="${esc(m.competition)}">
+              <i class="ti ti-eye"></i> ดู
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('admin-group-modal').classList.add('open');
+}
+
+function closeAdminGroupModal(e) {
+  if (e.target === document.getElementById('admin-group-modal')) {
+    document.getElementById('admin-group-modal').classList.remove('open');
+  }
+}
+
+document.getElementById('admin-group-body').addEventListener('click', e => {
+  const btn = e.target.closest('.admin-group-member-btn');
+  if (!btn) return;
+  document.getElementById('admin-group-modal').classList.remove('open');
   openAdminDetail(btn.dataset.id, btn.dataset.comp);
 });
 
@@ -1520,14 +1648,25 @@ function openAdminDetail(id, comp) {
     </div>
 
     ${r.receipt_option === 'yes' ? `
-    <div class="detail-label" style="margin-top:16px;margin-bottom:6px;">ข้อมูลใบเสร็จ</div>
+    <div class="detail-label" style="margin-top:16px;margin-bottom:6px;color:var(--gold)">📄 ขอใบกำกับภาษี</div>
     <div class="detail-grid">
       <div><span class="detail-label">หน่วยงาน</span><div class="detail-value">${esc(r.institution_name) || '-'}</div></div>
       <div><span class="detail-label">เลขผู้เสียภาษี</span><div class="detail-value">${esc(r.institution_taxid) || '-'}</div></div>
       <div><span class="detail-label">ผู้ชำระเงิน</span><div class="detail-value">${esc(r.payer_name) || '-'}</div></div>
       <div><span class="detail-label">เบอร์ผู้ชำระ</span><div class="detail-value">${esc(r.payer_phone) || '-'}</div></div>
       <div style="grid-column:1/-1"><span class="detail-label">ที่อยู่</span><div class="detail-value">${esc(r.payer_address) || '-'}</div></div>
-    </div>` : ''}
+    </div>
+    ${(() => {
+      const groupMates = allRegs.filter(x =>
+        x.receipt_option === 'yes' && x.id !== r.id &&
+        x.created_at === r.created_at && x.competition === r.competition &&
+        x.institution_taxid === r.institution_taxid && x.payer_name === r.payer_name
+      );
+      if (!groupMates.length) return '';
+      return `<div class="detail-label" style="margin-top:12px;margin-bottom:4px;">สมัครพร้อมกันในใบนี้ (${groupMates.length} คนเพิ่มเติม)</div>
+        <div class="detail-value">${groupMates.map(g => `${esc(g.firstname)} ${esc(g.lastname)} <span style="color:var(--text-muted);font-size:11px">(${esc(g.reg_number)})</span>`).join('<br>')}</div>`;
+    })()}
+    ` : ''}
 
     ${r.additional_note
       ? `<div class="detail-label" style="margin-top:16px;margin-bottom:4px;">หมายเหตุจากผู้สมัคร</div><div class="detail-value">${esc(r.additional_note)}</div>`
@@ -1541,6 +1680,11 @@ function openAdminDetail(id, comp) {
       <option value="ยืนยันแล้ว" ${r.status === 'ยืนยันแล้ว' ? 'selected' : ''}>ยืนยันแล้ว</option>
       <option value="ยืนยันไม่สำเร็จ" ${r.status === 'ยืนยันไม่สำเร็จ' ? 'selected' : ''}>ยืนยันไม่สำเร็จ</option>
     </select>
+
+    <label class="detail-label" style="display:block;margin-bottom:4px;">เลขอ้างอิงการชำระเงิน (เช็คกับสลิป/รายการเดินบัญชี)</label>
+    <input class="fi" id="admin-payref-input" placeholder="เช่น เลขอ้างอิงจากแอปธนาคาร" style="margin-bottom:12px;" value="${esc(r.payment_ref) || ''}">
+
+    <label class="detail-label" style="display:block;margin-bottom:4px;">หมายเหตุ (ระบุเหตุผล/บันทึกภายใน)</label>
     <textarea class="fi" id="admin-remark-input" placeholder="หมายเหตุ (กรณีไม่ผ่าน ระบุเหตุผล)" style="min-height:70px;margin-bottom:12px;">${esc(r.remark) || ''}</textarea>
     <button class="submit-btn" style="width:100%;padding:11px;" id="admin-save-btn">บันทึกการเปลี่ยนแปลง</button>
     <div id="admin-save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
@@ -1562,12 +1706,13 @@ async function saveAdminEdit(id, comp) {
 
   const status = document.getElementById('admin-status-select').value;
   const remark = document.getElementById('admin-remark-input').value.trim();
+  const paymentRef = document.getElementById('admin-payref-input').value.trim();
   const statusEl = document.getElementById('admin-save-status');
   const btn = document.getElementById('admin-save-btn');
   btn.disabled = true;
   statusEl.textContent = 'กำลังบันทึก...';
 
-  const { error } = await sb.from(table).update({ status, remark }).eq('id', id);
+  const { error } = await sb.from(table).update({ status, remark, payment_ref: paymentRef }).eq('id', id);
 
   btn.disabled = false;
   if (error) {
@@ -1580,33 +1725,98 @@ async function saveAdminEdit(id, comp) {
   await loadReport();
 }
 
+// ── admin: sub-navigation (รายชื่อผู้สมัคร / ใบกำกับภาษี) ──
+document.querySelectorAll('.admin-subnav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.admin-subnav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    document.getElementById('admin-view-regs').style.display = view === 'regs' ? '' : 'none';
+    document.getElementById('admin-view-invoices').style.display = view === 'invoices' ? '' : 'none';
+    if (view === 'invoices') filterAdminInvoices();
+  });
+});
+
+function filterAdminInvoices() {
+  const searchEl = document.getElementById('admin-invoice-search');
+  if (!searchEl) return;
+  const search = searchEl.value.toLowerCase();
+  const withReceipt = allRegs.filter(r => r.receipt_option === 'yes');
+
+  // คนที่สมัครพร้อมกันหลายคนในใบเดียว จะแชร์ created_at / หน่วยงาน / ผู้ชำระเงินเดียวกัน
+  // -> รวมเป็นแถวเดียว โดยใช้ชื่อคนแรก (เลขสมัครน้อยสุด) เป็นตัวแทน
+  const groups = new Map();
+  withReceipt.forEach(r => {
+    const key = `${r.created_at}|${r.competition}|${r.institution_taxid}|${r.payer_name}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  let rows = Array.from(groups.values()).map(group => {
+    group.sort((a, b) => String(a.reg_number).localeCompare(String(b.reg_number)));
+    return Object.assign({}, group[0], { _groupCount: group.length });
+  });
+
+  if (search) {
+    rows = rows.filter(r =>
+      `${r.institution_name||''} ${r.payer_name||''} ${r.reg_number||''} ${r.firstname||''} ${r.lastname||''}`.toLowerCase().includes(search)
+    );
+  }
+
+  renderAdminInvoices(rows, groups.size);
+}
+
+function renderAdminInvoices(rows, totalGroups) {
+  const tbody = document.getElementById('admin-invoice-tbody');
+  if (!tbody) return;
+  const total = typeof totalGroups === 'number' ? totalGroups : rows.length;
+  document.getElementById('admin-invoice-count').textContent = `แสดง ${rows.length} จากทั้งหมด ${total} ใบกำกับภาษี`;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">ไม่พบข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px;color:var(--gold)">${esc(r.reg_number)}</td>
+      <td style="white-space:nowrap">${esc(r.firstname)} ${esc(r.lastname)}${r._groupCount > 1 ? ` <span class="tab-count" style="opacity:1;color:var(--gold)">+${r._groupCount - 1} คน</span>` : ''}</td>
+      <td style="font-size:12px;max-width:120px;white-space:normal;word-break:break-word;">${esc(r.competition)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.institution_name)}">${esc(r.institution_name) || '-'}</td>
+      <td style="font-family:monospace;font-size:12px;">${esc(r.institution_taxid) || '-'}</td>
+      <td style="white-space:nowrap">${esc(r.payer_name) || '-'}</td>
+      <td style="white-space:nowrap">${esc(r.payer_phone) || '-'}</td>
+      <td><button type="button" class="refresh-btn admin-view-btn" data-id="${esc(r.id)}" data-comp="${esc(r.competition)}">
+        <i class="ti ti-eye"></i> ดูรายละเอียด
+      </button></td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('admin-invoice-tbody').addEventListener('click', e => {
+  const btn = e.target.closest('.admin-view-btn');
+  if (!btn) return;
+  openAdminDetail(btn.dataset.id, btn.dataset.comp);
+});
+
 
 // ── theme toggle (light/dark) ───────────────────────
 function applyTheme(theme) {
   const isLight = theme === 'light';
   document.body.classList.toggle('light-theme', isLight);
-  const optDark = document.getElementById('theme-opt-dark');
-  const optLight = document.getElementById('theme-opt-light');
-  if (optDark && optLight) {
-    optDark.classList.toggle('is-active', !isLight);
-    optLight.classList.toggle('is-active', isLight);
-  }
+  const icon = document.getElementById('theme-toggle-icon');
+  if (icon) icon.className = isLight ? 'ti ti-moon' : 'ti ti-sun';
 }
-function setTheme(next, e) {
-  const current = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-  if (next === current) return;
 
-  const commit = () => {
-    try { localStorage.setItem('theme', next); } catch (err) {}
+function toggleTheme() {
+  const next = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+  const doSwitch = () => {
+    try { localStorage.setItem('theme', next); } catch (e) {}
     applyTheme(next);
   };
 
-  const originEl = (e && e.currentTarget) || document.getElementById('theme-toggle-btn');
-  const supportsVT = typeof document.startViewTransition === 'function';
+  const btn = document.getElementById('theme-toggle-btn');
+  if (!document.startViewTransition || !btn) { doSwitch(); return; }
 
-  if (!supportsVT || !originEl) { commit(); return; }
-
-  const rect = originEl.getBoundingClientRect();
+  const rect = btn.getBoundingClientRect();
   const x = rect.left + rect.width / 2;
   const y = rect.top + rect.height / 2;
   const endRadius = Math.hypot(
@@ -1614,36 +1824,74 @@ function setTheme(next, e) {
     Math.max(y, window.innerHeight - y)
   );
 
-  const transition = document.startViewTransition(() => { commit(); });
-
+  const transition = document.startViewTransition(doSwitch);
   transition.ready.then(() => {
     document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`
-        ]
-      },
-      {
-        duration: 600,
-        easing: 'ease-in-out',
-        pseudoElement: '::view-transition-new(root)'
-      }
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
+      { duration: 600, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
     );
   });
 }
+
 (function initTheme() {
   let saved = null;
   try { saved = localStorage.getItem('theme'); } catch (e) {}
   applyTheme(saved === 'light' ? 'light' : 'dark');
 })();
 
+// ── decorative floating math symbols ────────────────
+function initFloatingSymbols() {
+  const container = document.getElementById('floating-symbols');
+  if (!container) return;
+  const symbols = ['+', '−', '×', '÷', '=', '√', 'π', '∑', '∞', '%', '7', '3', '9'];
+  const count = window.innerWidth < 700 ? 10 : 18;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    const sym = symbols[Math.floor(Math.random() * symbols.length)];
+    const left = Math.random() * 100;
+    const size = 18 + Math.random() * 28;
+    const duration = 18 + Math.random() * 22;
+    const delay = -Math.random() * duration;
+    html += `<span style="left:${left}%;font-size:${size}px;animation-duration:${duration}s;animation-delay:${delay}s;">${sym}</span>`;
+  }
+  container.innerHTML = html;
+}
+
+// ── countdown to expected registration opening ──────
+function initCountdown() {
+  const target = new Date('2026-11-01T00:00:00+07:00').getTime();
+  const dEl = document.getElementById('cd-days');
+  const hEl = document.getElementById('cd-hours');
+  const mEl = document.getElementById('cd-mins');
+  const sEl = document.getElementById('cd-secs');
+  if (!dEl) return;
+
+  function tick() {
+    const diff = target - Date.now();
+    if (diff <= 0) {
+      dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = '0';
+      return;
+    }
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    dEl.textContent = days;
+    hEl.textContent = String(hours).padStart(2, '0');
+    mEl.textContent = String(mins).padStart(2, '0');
+    sEl.textContent = String(secs).padStart(2, '0');
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
 // ── init ──────────────────────────────────────────
 renderPersonForms();
+initFloatingSymbols();
+initCountdown();
 loadCompetitions().then(loadStats);
 setReceiptOption('no');  // Initialize receipt section
 </script>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <!-- Footer: credit / copyright (added per user request) -->
 <footer style="margin-top:18px;padding:14px 12px;text-align:center;background:var(--footer-grad);border-top:0.5px solid var(--surface-2);">
