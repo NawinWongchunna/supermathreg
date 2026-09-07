@@ -322,7 +322,7 @@ tr:hover td { background: var(--surface-3); }
     <p>เลือกรายการแข่งขันที่ต้องการสมัครด้านล่าง</p>
 
     <div class="countdown-wrap">
-      <div class="countdown-label">คาดว่าจะเปิดรับสมัคร พฤศจิกายน 2569</div>
+      <div class="countdown-label" id="countdown-label">คาดว่าจะเปิดรับสมัคร พฤศจิกายน 2569</div>
       <div class="countdown-row" id="countdown-row">
         <div class="cd-box"><div class="cd-num" id="cd-days">--</div><div class="cd-unit">วัน</div></div>
         <div class="cd-box"><div class="cd-num" id="cd-hours">--</div><div class="cd-unit">ชม.</div></div>
@@ -1864,17 +1864,27 @@ function initFloatingSymbols() {
 
 // ── countdown to expected registration opening ──────
 function initCountdown() {
-  const target = new Date('2026-11-01T00:00:00+07:00').getTime();
+  const target = new Date('2026-11-20T00:00:00+07:00').getTime();
   const dEl = document.getElementById('cd-days');
   const hEl = document.getElementById('cd-hours');
   const mEl = document.getElementById('cd-mins');
   const sEl = document.getElementById('cd-secs');
+  const labelEl = document.getElementById('countdown-label');
+  const rowEl = document.getElementById('countdown-row');
   if (!dEl) return;
+
+  let timerId = null;
+
+  function showOpenMessage() {
+    if (labelEl) labelEl.textContent = 'เปิดรับสมัครแล้ว';
+    if (rowEl) rowEl.style.display = 'none';
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
 
   function tick() {
     const diff = target - Date.now();
     if (diff <= 0) {
-      dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = '0';
+      showOpenMessage();
       return;
     }
     const days = Math.floor(diff / 86400000);
@@ -1887,7 +1897,7 @@ function initCountdown() {
     sEl.textContent = String(secs).padStart(2, '0');
   }
   tick();
-  setInterval(tick, 1000);
+  timerId = setInterval(tick, 1000);
 }
 
 // ── init ──────────────────────────────────────────
