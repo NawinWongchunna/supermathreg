@@ -119,6 +119,14 @@ body::after {
 .year-badge { background: linear-gradient(135deg, rgba(255,106,0,0.16), rgba(255,171,94,0.18)); border: 0.5px solid var(--orange-bdr); border-radius: 24px; padding: 6px 18px; font-size: 12px; color: var(--gold); }
 .hero { text-align: center; padding: 18px 0 34px; margin-bottom: 10px; }
 .countdown-wrap { margin-top: 22px; }
+.announce-bar { display:none; align-items:flex-start; gap:10px; max-width:1080px; margin:14px auto 0; padding:11px 16px; background:var(--surface-2); border:0.5px solid var(--orange-bdr); border-left:3px solid var(--orange); border-radius:8px; }
+.announce-bar.show { display:flex; }
+.announce-icon { color:var(--gold); font-size:15px; margin-top:1px; flex-shrink:0; }
+.announce-text { flex:1; font-size:13px; line-height:1.6; color:var(--text-main); white-space:pre-wrap; }
+.admin-announce-card { background:var(--bg-card); border:0.5px solid var(--border); border-radius:10px; padding:16px; margin-bottom:20px; }
+.admin-announce-card .t2 { font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:10px; }
+.admin-announce-card textarea { width:100%; min-height:80px; resize:vertical; background:var(--surface-2); border:0.5px solid var(--border); border-radius:8px; color:var(--text-main); font-family:'Sarabun',sans-serif; font-size:13px; padding:10px; box-sizing:border-box; }
+.admin-announce-card .row { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center; }
 .countdown-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
 .countdown-row { display: flex; justify-content: center; gap: 10px; }
 .cd-box { background: var(--surface-2); border: 0.5px solid var(--orange-bdr); border-radius: 10px; padding: 10px 14px; min-width: 58px; }
@@ -292,6 +300,11 @@ tr:hover td { background: var(--surface-3); }
 <body>
 <div class="floating-symbols" id="floating-symbols"></div>
 <div id="app">
+
+<div class="announce-bar" id="announce-bar">
+  <i class="ti ti-speakerphone announce-icon"></i>
+  <div class="announce-text" id="announce-text"></div>
+</div>
 
 <!-- ══ HOME ══════════════════════════════════════════ -->
 <div id="page-home" class="page active">
@@ -588,6 +601,16 @@ tr:hover td { background: var(--surface-3); }
   <div class="sub-topbar">
     <button class="back-btn" onclick="adminLogout()"><i class="ti ti-logout"></i> ออกจากระบบแอดมิน</button>
     <div><div class="t1">จัดการผู้สมัคร (แอดมิน)</div><div class="t2"><span class="live-dot"></span>Real-time</div></div>
+  </div>
+
+  <div class="admin-announce-card">
+    <div class="t2"><i class="ti ti-speakerphone"></i> ประกาศหน้าเว็บ (แสดงให้ผู้เข้าชมทุกคนเห็นทันที)</div>
+    <textarea id="admin-announce-input" placeholder="พิมพ์ข้อความประกาศที่นี่ เช่น เลื่อนวันแข่งขันเป็น 20 พฤศจิกายน 2569..."></textarea>
+    <div class="row">
+      <button class="submit-btn" style="padding:9px 20px;" onclick="saveAnnouncement()">บันทึก/อัปเดตประกาศ</button>
+      <button class="back-btn" onclick="clearAnnouncement()"><i class="ti ti-trash"></i> ลบประกาศ</button>
+      <span id="admin-announce-status" style="font-size:12px;color:var(--text-muted);"></span>
+    </div>
   </div>
 
   <div class="report-tabs" style="margin-bottom:18px;">
@@ -889,6 +912,51 @@ async function loadCompetitions() {
   competitions = data;
   renderCompCards();
   subscribeRegistrationsRealtime();
+}
+
+// ── announcement bar (สื่อสารกับผู้เข้าชมแบบเรียลไทม์) ──────────────
+function renderAnnouncement(msg) {
+  const bar = document.getElementById('announce-bar');
+  const text = document.getElementById('announce-text');
+  if (msg && msg.trim()) {
+    text.textContent = msg;
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+async function loadAnnouncement() {
+  try {
+    const { data, error } = await sb.from('announcements').select('message').eq('id', 1).single();
+    if (error) return;
+    renderAnnouncement(data ? data.message : '');
+    const input = document.getElementById('admin-announce-input');
+    if (input) input.value = (data && data.message) || '';
+  } catch (e) { /* ตารางอาจยังไม่ถูกสร้าง - ไม่ต้องแจ้งผู้ใช้ */ }
+}
+function subscribeAnnouncementRealtime() {
+  sb.channel('announcements').on('postgres_changes',
+    { event: '*', schema: 'public', table: 'announcements' },
+    (payload) => {
+      const msg = payload.new ? payload.new.message : '';
+      renderAnnouncement(msg);
+      const input = document.getElementById('admin-announce-input');
+      if (input) input.value = msg || '';
+    }
+  ).subscribe();
+}
+async function saveAnnouncement() {
+  const input = document.getElementById('admin-announce-input');
+  const status = document.getElementById('admin-announce-status');
+  const msg = input.value.trim();
+  status.textContent = 'กำลังบันทึก...';
+  const { error } = await sb.from('announcements').upsert({ id: 1, message: msg, updated_at: new Date().toISOString() });
+  status.textContent = error ? 'บันทึกไม่สำเร็จ: ' + error.message : 'บันทึกแล้ว ✓';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+async function clearAnnouncement() {
+  document.getElementById('admin-announce-input').value = '';
+  await saveAnnouncement();
 }
 
 // subscribe to realtime changes on every per-competition table
@@ -1906,6 +1974,8 @@ initFloatingSymbols();
 initCountdown();
 loadCompetitions().then(loadStats);
 setReceiptOption('no');  // Initialize receipt section
+loadAnnouncement();
+subscribeAnnouncementRealtime();
 </script>
 
 <!-- Footer: credit / copyright (added per user request) -->
