@@ -401,6 +401,9 @@ tr:hover td { background: var(--surface-3); }
       <a href="https://www.facebook.com/profile.php?id=61569858092144" target="_blank" class="contact-link">
         <i class="ti ti-brand-facebook"></i> Facebook
       </a>
+      <a href="https://www.facebook.com/share/1FFJwzKAWc/" target="_blank" rel="noopener" class="contact-link">
+        <i class="ti ti-brand-facebook"></i> SuperMath
+      </a>
       <div class="contact-link" style="cursor:default">
         <i class="ti ti-phone"></i> 084-217-4184
       </div>
@@ -457,6 +460,10 @@ tr:hover td { background: var(--surface-3); }
             <label class="fl">ชื่อหน่วยงาน/สถาบัน (ไม่ต้องมีคำว่า"โรงเรียน") *</label>
             <input class="fi" id="inst-name" placeholder="ชื่อหน่วยงานเต็ม">
           </div>
+          <div class="form-row">
+            <label class="fl">ที่อยู่ของหน่วยงานหรือสถาบัน</label>
+            <input class="fi" id="payer-address" placeholder="ที่อยู่เต็ม เลขที่ ซอย ถนน">
+          </div>
           <div class="form-cols">
             <div class="form-row">
               <label class="fl">รหัสประจำตัวสถานศึกษา/เลขประจำตัวผู้เสียภาษีอากร</label>
@@ -474,19 +481,9 @@ tr:hover td { background: var(--surface-3); }
         <!-- รายละเอียดผู้ชำระเงิน -->
         <div class="form-section">
           <div class="form-section-title">รายละเอียดผู้ชำระเงิน</div>
-          <div class="form-cols">
-            <div class="form-row">
-              <label class="fl">ชื่อผู้ชำระเงิน/หน่วยงาน *</label>
-              <input class="fi" id="payer-name" placeholder="ชื่อบุคคล หรือ ชื่อหน่วยงาน">
-            </div>
-            <div class="form-row">
-              <label class="fl">เลขประจำตัวประชาชน/ทะเบียนการค้า</label>
-              <input class="fi" id="payer-id" placeholder="13 หลัก หรือเลขทะเบียนการค้า">
-            </div>
-          </div>
           <div class="form-row">
-            <label class="fl">ที่อยู่ของผู้ชำระเงิน</label>
-            <input class="fi" id="payer-address" placeholder="ที่อยู่เต็ม เลขที่ ซอย ถนน">
+            <label class="fl">ชื่อผู้ชำระเงิน/หน่วยงาน *</label>
+            <input class="fi" id="payer-name" placeholder="ชื่อบุคคล หรือ ชื่อหน่วยงาน">
           </div>
           <div class="form-cols">
             <div class="form-row">
@@ -530,7 +527,7 @@ tr:hover td { background: var(--surface-3); }
           <div class="bank-name">ธนาคาร กรุงไทย สาขาเลย</div>
           <div class="acc-num">403-3-166-17-3</div>
           <div class="acc-name">ชื่อบัญชี: กิจกรรม SUPER MATH โรงเรียนเลยอนุกูลวิทยา</div>
-          <div class="amount">ค่าสมัคร 150 บาท / คน</div>
+          <div class="amount">ค่าสมัคร 250 บาท / คน</div>
         </div>
       </div>
 
@@ -1143,7 +1140,6 @@ async function submitRegister() {
     instTaxId = document.getElementById('inst-taxid')?.value.trim() || '';
     instProvince = document.getElementById('inst-province')?.value.trim() || '';
     payerName = document.getElementById('payer-name')?.value.trim() || '';
-    payerId = document.getElementById('payer-id')?.value.trim() || '';
     payerAddress = document.getElementById('payer-address')?.value.trim() || '';
     payerProvince = document.getElementById('payer-province')?.value.trim() || '';
     payerPhone = document.getElementById('payer-phone')?.value.trim() || '';
@@ -1281,7 +1277,6 @@ function resetRegister() {
   document.getElementById('inst-taxid').value = '';
   document.getElementById('inst-province').value = '';
   document.getElementById('payer-name').value = '';
-  document.getElementById('payer-id').value = '';
   document.getElementById('payer-address').value = '';
   document.getElementById('payer-province').value = '';
   document.getElementById('payer-phone').value = '';
@@ -1328,8 +1323,7 @@ function setReceiptOption(option) {
     document.getElementById('inst-taxid').value = '';
     document.getElementById('inst-province').value = '';
     document.getElementById('payer-name').value = '';
-    document.getElementById('payer-id').value = '';
-    document.getElementById('payer-address').value = '';
+      document.getElementById('payer-address').value = '';
     document.getElementById('payer-province').value = '';
     document.getElementById('payer-phone').value = '';
   }
@@ -1361,7 +1355,6 @@ function openReceiptDetailsModal(regNumber) {
       details += `  • จังหวัด: ${data.institution_province || '-'}\n\n`;
       details += `👤 ผู้ชำระเงิน:\n`;
       details += `  • ชื่อ: ${data.payer_name || '-'}\n`;
-      details += `  • เลขประจำตัว: ${data.payer_id || '-'}\n`;
       details += `  • ที่อยู่: ${data.payer_address || '-'}\n`;
       details += `  • จังหวัด: ${data.payer_province || '-'}\n`;
       details += `  • เบอร์โทร: ${data.payer_phone || '-'}\n\n`;
