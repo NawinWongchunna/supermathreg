@@ -330,18 +330,12 @@ tr:hover td { background: var(--surface-3); }
   </div>
 
   <div class="hero">
-    <div class="hero-tag">ยังไม่เปิดรับสมัคร</div>
+    <div class="hero-tag">เปิดรับสมัครแล้ว</div>
     <h1><span class="hero-highlight">SUPER</span>MATH<br>ระดับประเทศ<br>ครั้งที่ 6</h1>
     <p>เลือกรายการแข่งขันที่ต้องการสมัครด้านล่าง</p>
 
     <div class="countdown-wrap">
-      <div class="countdown-label" id="countdown-label">คาดว่าจะเปิดรับสมัคร พฤศจิกายน 2569</div>
-      <div class="countdown-row" id="countdown-row">
-        <div class="cd-box"><div class="cd-num" id="cd-days">--</div><div class="cd-unit">วัน</div></div>
-        <div class="cd-box"><div class="cd-num" id="cd-hours">--</div><div class="cd-unit">ชม.</div></div>
-        <div class="cd-box"><div class="cd-num" id="cd-mins">--</div><div class="cd-unit">นาที</div></div>
-        <div class="cd-box"><div class="cd-num" id="cd-secs">--</div><div class="cd-unit">วิ</div></div>
-      </div>
+      <div class="countdown-label" style="font-size:18px;color:var(--gold);font-weight:600;letter-spacing:0;text-transform:none;margin-bottom:0"><i class="ti ti-circle-check"></i> เปิดรับสมัครแล้ว</div>
     </div>
   </div>
 
@@ -365,25 +359,25 @@ tr:hover td { background: var(--surface-3); }
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-edit"></i></div>
         <div class="tl-title">เปิดรับสมัคร</div>
-        <div class="tl-desc">วันที่ 1 พฤษจิกายน 2569 </div>
+        <div class="tl-desc">วันที่ 28 กันยายน 2569 </div>
       </div>
       <div class="tl-line"></div>
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-clock"></i></div>
         <div class="tl-title">ปิดรับสมัคร</div>
-        <div class="tl-desc">วันที่ 19 พฤษจิกายน 2569 </div>
+        <div class="tl-desc">วันที่ 10 พฤศจิกายน 2569 </div>
       </div>
       <div class="tl-line"></div>
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-trophy"></i></div>
         <div class="tl-title">วันแข่งขัน</div>
-        <div class="tl-desc">วันที่ 20 พฤษจิกายน 2569 </div>
+        <div class="tl-desc">วันที่ 20 พฤศจิกายน 2569 </div>
       </div>
       <div class="tl-line"></div>
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-award"></i></div>
         <div class="tl-title">ประกาศผล</div>
-        <div class="tl-desc">วันที่ 21 พฤษจิกายน 2569 </div>
+        <div class="tl-desc">วันที่ 21 พฤศจิกายน 2569 </div>
       </div>
     </div>
   </div>
@@ -538,18 +532,19 @@ tr:hover td { background: var(--surface-3); }
            ondrop="handleDrop(event)">
         <input type="file" id="slip-input" accept="image/*" onchange="handleSlipChange(event)">
         <div class="sz-icon"><i class="ti ti-photo-up"></i></div>
-        <div class="sz-hint">แนบสลิปการโอนเงิน — คลิกหรือลากไฟล์มาวาง</div>
+        <div class="sz-hint">แนบสลิปการโอนเงิน (จำเป็น) — คลิกหรือลากไฟล์มาวาง</div>
         <div class="sz-hint2">รองรับ JPG, PNG ขนาดสูงสุด 5MB</div>
         <img id="slip-preview" style="display:none">
       </div>
     </div>
 
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-      <button class="submit-btn" id="submit-btn" onclick="submitRegister()">
+      <button class="submit-btn" id="submit-btn" onclick="submitRegister()" disabled>
         <i class="ti ti-send"></i> ยืนยันการสมัคร
       </button>
       <span id="submit-status" style="font-size:13px;color:var(--text-muted)"></span>
     </div>
+    <div id="submit-hint" style="font-size:12px;color:#e07070;margin-top:8px"></div>
   </div>
 
   <div id="register-success" style="display:none">
@@ -835,7 +830,15 @@ document.addEventListener('click', event => {
 function updateSubmitButton() {
   const btn = document.getElementById('submit-btn');
   const isAgreed = document.getElementById('terms-agree').checked;
-  btn.disabled = !isAgreed;
+  const hasSlip = !!slipFile;
+  btn.disabled = !(isAgreed && hasSlip);
+  const hint = document.getElementById('submit-hint');
+  if (hint) {
+    const missing = [];
+    if (!hasSlip) missing.push('แนบสลิปการโอนเงิน');
+    if (!isAgreed) missing.push('ยินยอมเงื่อนไข');
+    hint.textContent = missing.length ? 'ต้อง' + missing.join(' และ ') + 'ก่อนจึงจะกดยืนยันได้' : '';
+  }
 }
 
 const provinces = ['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
@@ -1000,7 +1003,7 @@ function renderCompCards() {
         <div class="card-body">
           <div class="card-label">รายการ ${i + 1}</div>
           <div class="card-title">${c.name}</div>
-          <div class="card-date"><i class="ti ti-calendar" style="font-size:11px"></i> ยังไม่เปิดรับสมัคร</div>
+          <div class="card-date"><i class="ti ti-calendar" style="font-size:11px"></i> เปิดรับสมัครแล้ว</div>
           <div class="card-hint">คลิกเพื่อสมัคร →</div>
         </div>
       </div>
@@ -1055,16 +1058,19 @@ function handleDrop(e) {
 }
 function processSlip(file) {
   if (!file) return;
-  slipFile = file;
-  if (file.size > 5*1024*1024) { notify('ไฟล์ใหญ่เกิน 5MB', 'err'); return; }
+  const allowed = ['image/png', 'image/jpeg', 'image/jpg'];
+  if (!allowed.includes(file.type)) { notify('รองรับเฉพาะไฟล์ JPG หรือ PNG', 'err'); document.getElementById('slip-input').value = ''; return; }
+  if (file.size > 5*1024*1024) { notify('ไฟล์ต้องมีขนาดไม่เกิน 5MB', 'err'); document.getElementById('slip-input').value = ''; return; }
   const reader = new FileReader();
   reader.onload = e => {
+    slipFile = file;
     slipBase64 = e.target.result;
     const prev = document.getElementById('slip-preview');
     prev.src = slipBase64; prev.style.display = 'block';
     document.querySelector('#slip-zone .sz-icon').style.display = 'none';
     document.querySelector('#slip-zone .sz-hint').textContent = file.name;
     document.querySelector('#slip-zone .sz-hint2').textContent = (file.size/1024).toFixed(0) + ' KB';
+    updateSubmitButton();
   };
   reader.readAsDataURL(file);
 }
@@ -1108,6 +1114,13 @@ async function submitRegister() {
   // Check if terms agreed
   if (!document.getElementById('terms-agree').checked) {
     notify('กรุณายินยอมเงื่อนไขก่อนส่งข้อมูล', 'err');
+    return;
+  }
+
+  // ต้องแนบสลิปก่อนเสมอ
+  if (!slipFile) {
+    notify('กรุณาแนบสลิปการโอนเงินก่อนส่งข้อมูล', 'err');
+    updateSubmitButton();
     return;
   }
 
@@ -1268,9 +1281,10 @@ function resetRegister() {
   renderPersonForms();
   slipBase64 = '';
   slipFile = null;
+  document.getElementById('slip-input').value = '';
   document.getElementById('slip-preview').style.display = 'none';
   document.querySelector('#slip-zone .sz-icon').style.display = 'block';
-  document.querySelector('#slip-zone .sz-hint').textContent = 'แนบสลิปการโอนเงิน — คลิกหรือลากไฟล์มาวาง';
+  document.querySelector('#slip-zone .sz-hint').textContent = 'แนบสลิปการโอนเงิน (จำเป็น) — คลิกหรือลากไฟล์มาวาง';
   document.querySelector('#slip-zone .sz-hint2').textContent = 'รองรับ JPG, PNG ขนาดสูงสุด 5MB';
   // Clear additional fields
   document.getElementById('inst-name').value = '';
@@ -1701,8 +1715,22 @@ function openAdminDetail(id, comp) {
 
     ${r.slip_url
       ? `<img src="${esc(r.slip_url)}" style="max-width:100%;border-radius:8px;border:0.5px solid var(--orange-bdr);margin-bottom:16px;">`
-      : `<div style="color:var(--text-muted);font-size:12px;margin-bottom:16px;">ไม่มีสลิป</div>`
+      : `<div style="color:#e07070;font-size:12px;margin-bottom:8px;">ยังไม่มีสลิป</div>`
     }
+
+    <div style="background:var(--surface-2);border:0.5px dashed var(--orange-bdr);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <div class="detail-label" style="margin-bottom:6px;color:var(--gold)">${r.slip_url ? 'เปลี่ยนสลิป' : 'แนบสลิปให้ผู้สมัคร'}</div>
+      <input type="file" id="admin-slip-input" accept="image/png,image/jpeg" style="font-size:12px;color:var(--text-sub);max-width:100%;margin-bottom:8px;">
+      <img id="admin-slip-preview" style="display:none;max-width:100%;max-height:160px;border-radius:8px;border:0.5px solid var(--orange-bdr);margin-bottom:8px;">
+      <label id="admin-slip-group-wrap" style="display:none;font-size:12px;color:var(--text-sub);margin-bottom:8px;align-items:center;gap:6px;">
+        <input type="checkbox" id="admin-slip-group" checked>
+        <span id="admin-slip-group-text"></span>
+      </label>
+      <button type="button" class="submit-btn" style="width:100%;padding:9px;font-size:13px;" id="admin-slip-btn" disabled>
+        <i class="ti ti-upload"></i> อัปโหลดสลิป
+      </button>
+      <div id="admin-slip-status" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+    </div>
 
     <div class="detail-grid">
       <div><span class="detail-label">โรงเรียน</span><div class="detail-value">${esc(r.school)}</div></div>
@@ -1756,7 +1784,67 @@ function openAdminDetail(id, comp) {
     <div id="admin-save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
   `;
   document.getElementById('admin-save-btn').onclick = () => saveAdminEdit(r.id, r.competition);
+  setupAdminSlipUploader(r);
   document.getElementById('admin-detail-modal').classList.add('open');
+}
+
+// สมาชิกในกลุ่มเดียวกันที่ใช้สลิปเดียวกัน (หรือยังไม่มีสลิปเหมือนกัน)
+function adminSlipTargets(r) {
+  return allRegs.filter(x =>
+    x.id !== r.id && regGroupKey(x) === regGroupKey(r) &&
+    (x.slip_url || '') === (r.slip_url || '')
+  );
+}
+
+function setupAdminSlipUploader(r) {
+  const input = document.getElementById('admin-slip-input');
+  const btn = document.getElementById('admin-slip-btn');
+  const prev = document.getElementById('admin-slip-preview');
+  const statusEl = document.getElementById('admin-slip-status');
+  const mates = adminSlipTargets(r);
+  if (mates.length) {
+    document.getElementById('admin-slip-group-wrap').style.display = 'flex';
+    document.getElementById('admin-slip-group-text').textContent =
+      `ใช้สลิปนี้กับผู้สมัครที่ส่งมาพร้อมกันอีก ${mates.length} คน`;
+  }
+  let chosen = null;
+  input.onchange = async () => {
+    const f = input.files[0];
+    chosen = null; btn.disabled = true; prev.style.display = 'none'; statusEl.textContent = '';
+    if (!f) return;
+    const ok = await validateSlip(f);
+    if (!ok) { input.value = ''; notify('ไฟล์สลิปไม่ถูกต้อง (JPG/PNG ไม่เกิน 5MB และไม่เล็กเกินไป)', 'err'); return; }
+    chosen = f;
+    prev.src = URL.createObjectURL(f); prev.style.display = 'block';
+    btn.disabled = false;
+  };
+  btn.onclick = async () => {
+    if (!chosen) return;
+    const compObj = competitions.find(c => c.name === r.competition);
+    const table = regTable(compObj);
+    if (!table) { notify('ไม่พบตารางของรายการนี้', 'err'); return; }
+    btn.disabled = true;
+    statusEl.textContent = 'กำลังอัปโหลด...';
+    const { url, error: upErr } = await uploadSlipToSupabase(chosen, `${r.reg_number}_${Date.now()}`);
+    if (upErr || !url) {
+      statusEl.textContent = '';
+      btn.disabled = false;
+      notify('อัปโหลดไม่สำเร็จ: ' + (upErr?.message || 'ไม่ทราบสาเหตุ'), 'err');
+      return;
+    }
+    const ids = [r.id];
+    if (mates.length && document.getElementById('admin-slip-group').checked) mates.forEach(m => ids.push(m.id));
+    const { error } = await sb.from(table).update({ slip_url: url }).in('id', ids);
+    if (error) {
+      statusEl.textContent = '';
+      btn.disabled = false;
+      notify('บันทึกสลิปไม่สำเร็จ: ' + error.message, 'err');
+      return;
+    }
+    notify(`แนบสลิปให้ ${ids.length} คนแล้ว ✓`);
+    await loadReport();
+    openAdminDetail(r.id, r.competition);
+  };
 }
 
 function closeAdminDetailModal(e) {
@@ -1923,48 +2011,9 @@ function initFloatingSymbols() {
   container.innerHTML = html;
 }
 
-// ── countdown to expected registration opening ──────
-function initCountdown() {
-  const target = new Date('2026-11-20T00:00:00+07:00').getTime();
-  const dEl = document.getElementById('cd-days');
-  const hEl = document.getElementById('cd-hours');
-  const mEl = document.getElementById('cd-mins');
-  const sEl = document.getElementById('cd-secs');
-  const labelEl = document.getElementById('countdown-label');
-  const rowEl = document.getElementById('countdown-row');
-  if (!dEl) return;
-
-  let timerId = null;
-
-  function showOpenMessage() {
-    if (labelEl) labelEl.textContent = 'เปิดรับสมัครแล้ว';
-    if (rowEl) rowEl.style.display = 'none';
-    if (timerId) { clearInterval(timerId); timerId = null; }
-  }
-
-  function tick() {
-    const diff = target - Date.now();
-    if (diff <= 0) {
-      showOpenMessage();
-      return;
-    }
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    const secs = Math.floor((diff % 60000) / 1000);
-    dEl.textContent = days;
-    hEl.textContent = String(hours).padStart(2, '0');
-    mEl.textContent = String(mins).padStart(2, '0');
-    sEl.textContent = String(secs).padStart(2, '0');
-  }
-  tick();
-  timerId = setInterval(tick, 1000);
-}
-
 // ── init ──────────────────────────────────────────
 renderPersonForms();
 initFloatingSymbols();
-initCountdown();
 loadCompetitions().then(loadStats);
 setReceiptOption('no');  // Initialize receipt section
 loadAnnouncement();
