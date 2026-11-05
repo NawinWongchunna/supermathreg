@@ -254,6 +254,13 @@ select.fi option { background: #1c1c1c; }
 .success-note { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.7; }
 .report-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .report-tab { background: var(--surface-2); border: 0.5px solid var(--orange-bdr); border-radius: 20px; padding: 6px 16px; font-size: 12.5px; color: var(--text-sub); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; font-family: 'Sarabun', sans-serif; }
+.level-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:-4px 0 14px; padding:10px 12px; background:var(--surface-2); border:0.5px dashed var(--orange-bdr); border-radius:12px; }
+.level-bar .level-title { font-size:12px; color:var(--text-muted); margin-right:4px; }
+.level-chip { display:inline-flex; align-items:center; gap:6px; background:transparent; border:0.5px solid var(--orange-bdr); border-radius:10px; padding:6px 14px; font-size:12.5px; color:var(--text-sub); cursor:pointer; font-family:inherit; transition:all .15s; }
+.level-chip:hover { background:var(--orange-dim); color:var(--text-main); }
+.level-chip.active { background:var(--orange-dim); border-color:var(--orange); color:var(--gold); font-weight:600; }
+.level-chip .tab-count { opacity:.8; font-size:11px; }
+.level-chip.lv-empty { opacity:.45; }
 .report-tab:hover { background: var(--orange-dim); color: var(--text-main); }
 .report-tab.active { background: linear-gradient(135deg, var(--orange), var(--gold)); border-color: transparent; color: #0a0a0a; font-weight: 600; }
 .report-tab .tab-count { opacity: 0.75; margin-left: 4px; font-size: 11px; }
@@ -399,7 +406,7 @@ tr:hover td { background: var(--surface-3); }
         <i class="ti ti-brand-facebook"></i> SuperMath
       </a>
       <div class="contact-link" style="cursor:default">
-        <i class="ti ti-phone"></i> 084-217-4184
+        <i class="ti ti-phone"></i> 0610272721
       </div>
     </div>
   </div>
@@ -568,6 +575,7 @@ tr:hover td { background: var(--surface-3); }
     <div><div class="t1">รายงานการสมัคร</div><div class="t2"><span class="live-dot"></span>Real-time</div></div>
   </div>
   <div class="report-tabs" id="report-tabs"></div>
+  <div class="level-bar" id="level-bar" style="display:none"></div>
   <div class="report-controls">
     <input class="fi" id="search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." oninput="filterReport()">
     <select class="fi" id="status-filter" style="width:160px;flex:none" onchange="filterReport()">
@@ -617,6 +625,7 @@ tr:hover td { background: var(--surface-3); }
   <!-- ── view: registrants ── -->
   <div id="admin-view-regs">
     <div class="report-tabs" id="admin-tabs"></div>
+    <div class="level-bar" id="admin-level-bar" style="display:none"></div>
     <div class="report-controls">
       <input class="fi" id="admin-search-input" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร / เลขอ้างอิง..." oninput="filterAdminReport()">
       <select class="fi" id="admin-status-filter" style="width:160px;flex:none" onchange="filterAdminReport()">
@@ -624,6 +633,7 @@ tr:hover td { background: var(--surface-3); }
         <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
       </select>
       <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+      <button class="refresh-btn" onclick="exportAdminList()" title="ส่งออกรายชื่อทุกคนที่แสดงอยู่ตามตัวกรองปัจจุบัน"><i class="ti ti-download"></i> ส่งออกรายชื่อที่แสดง (Excel)</button>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -724,6 +734,25 @@ const ADMIN_EMAIL = 'admin@supermathlaw.internal';
 
 let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
 let currentCompFilter = '';
+let currentLevelFilter = '';
+let currentAdminLevelFilter = '';
+let adminExportRows = [];   // '' | 'ประถมศึกษา' | 'มัธยมต้น' | 'มัธยมปลาย'
+const LEVELS = [
+  { key: 'ประถมศึกษา', label: 'ประถม',      icon: 'ti-backpack' },
+  { key: 'มัธยมต้น',   label: 'มัธยมต้น',   icon: 'ti-book' },
+  { key: 'มัธยมปลาย',  label: 'มัธยมปลาย',  icon: 'ti-school' }
+];
+function getLevel(r) {
+  const lv = String(r.level || '').trim();
+  if (lv.includes('ประถม')) return 'ประถมศึกษา';
+  if (lv.includes('มัธยมต้น')) return 'มัธยมต้น';
+  if (lv.includes('มัธยมปลาย')) return 'มัธยมปลาย';
+  const g = String(r.grade || '').replace(/\s/g, '');
+  if (/^ป\./.test(g)) return 'ประถมศึกษา';
+  if (/^ม\.[123]$/.test(g)) return 'มัธยมต้น';
+  if (/^ม\.[456]$/.test(g)) return 'มัธยมปลาย';
+  return '';
+}
 let currentAdminCompFilter = '';
 let personCount = 1;
 
@@ -1432,7 +1461,35 @@ function renderReportTabs() {
       </button>`;
   });
   wrap.innerHTML = html;
+  renderLevelBar();
 }
+
+function renderLevelBar() {
+  const bar = document.getElementById('level-bar');
+  if (!bar) return;
+  if (!currentCompFilter) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const scope = allRegs.filter(r => r.competition === currentCompFilter);
+  let html = `<span class="level-title"><i class="ti ti-filter"></i> ${esc(currentCompFilter)} — เลือกระดับ:</span>
+    <button type="button" class="level-chip ${currentLevelFilter === '' ? 'active' : ''}" data-level="">
+      ทั้งหมด <span class="tab-count">${scope.length}</span>
+    </button>`;
+  LEVELS.forEach(lv => {
+    const n = scope.filter(r => getLevel(r) === lv.key).length;
+    html += `<button type="button" class="level-chip ${currentLevelFilter === lv.key ? 'active' : ''} ${n ? '' : 'lv-empty'}" data-level="${lv.key}">
+        <i class="ti ${lv.icon}"></i> ${lv.label} <span class="tab-count">${n}</span>
+      </button>`;
+  });
+  bar.innerHTML = html;
+  bar.style.display = 'flex';
+}
+
+document.getElementById('level-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.level-chip');
+  if (!btn) return;
+  currentLevelFilter = btn.dataset.level || '';
+  renderLevelBar();
+  filterReport();
+});
 
 document.getElementById('report-tabs').addEventListener('click', e => {
   const btn = e.target.closest('.report-tab');
@@ -1441,6 +1498,7 @@ document.getElementById('report-tabs').addEventListener('click', e => {
 });
 
 function setCompFilter(name) {
+  if (name !== currentCompFilter) currentLevelFilter = '';
   currentCompFilter = name;
   renderReportTabs();
   filterReport();
@@ -1452,7 +1510,8 @@ function filterReport() {
   const filtered = allRegs.filter(r =>
     (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number}`.toLowerCase().includes(search)) &&
     (!sf || r.status === sf) &&
-    (!currentCompFilter || r.competition === currentCompFilter)
+    (!currentCompFilter || r.competition === currentCompFilter) &&
+    (!currentCompFilter || !currentLevelFilter || getLevel(r) === currentLevelFilter)
   );
   renderReport(filtered);
 }
@@ -1499,7 +1558,7 @@ function renderReport(rows) {
     ? allRegs.filter(r => r.competition === currentCompFilter).length
     : allRegs.length;
   document.getElementById('report-count').textContent =
-    `แสดง ${rows.length} จากทั้งหมด ${scopeTotal} รายการ${currentCompFilter ? ` (${currentCompFilter})` : ''}`;
+    `แสดง ${rows.length} จากทั้งหมด ${scopeTotal} รายการ${currentCompFilter ? ` (${currentCompFilter}${currentLevelFilter ? ' · ' + currentLevelFilter : ''})` : ''}`;
   if (!rows.length) {
     document.getElementById('report-tbody').innerHTML =
       '<tr class="empty-row"><td colspan="10">ไม่พบข้อมูล</td></tr>';
@@ -1565,12 +1624,42 @@ function renderAdminTabs() {
       </button>`;
   });
   wrap.innerHTML = html;
+  renderAdminLevelBar();
 }
+
+function renderAdminLevelBar() {
+  const bar = document.getElementById('admin-level-bar');
+  if (!bar) return;
+  if (!currentAdminCompFilter) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const scope = allRegs.filter(r => r.competition === currentAdminCompFilter);
+  let html = `<span class="level-title"><i class="ti ti-filter"></i> ${esc(currentAdminCompFilter)} — เลือกระดับ:</span>
+    <button type="button" class="level-chip ${currentAdminLevelFilter === '' ? 'active' : ''}" data-level="">
+      ทั้งหมด <span class="tab-count">${scope.length}</span>
+    </button>`;
+  LEVELS.forEach(lv => {
+    const n = scope.filter(r => getLevel(r) === lv.key).length;
+    html += `<button type="button" class="level-chip ${currentAdminLevelFilter === lv.key ? 'active' : ''} ${n ? '' : 'lv-empty'}" data-level="${lv.key}">
+        <i class="ti ${lv.icon}"></i> ${lv.label} <span class="tab-count">${n}</span>
+      </button>`;
+  });
+  bar.innerHTML = html;
+  bar.style.display = 'flex';
+}
+
+document.getElementById('admin-level-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.level-chip');
+  if (!btn) return;
+  currentAdminLevelFilter = btn.dataset.level || '';
+  renderAdminLevelBar();
+  filterAdminReport();
+});
 
 document.getElementById('admin-tabs').addEventListener('click', e => {
   const btn = e.target.closest('.report-tab');
   if (!btn) return;
-  currentAdminCompFilter = btn.dataset.comp || '';
+  const next = btn.dataset.comp || '';
+  if (next !== currentAdminCompFilter) currentAdminLevelFilter = '';
+  currentAdminCompFilter = next;
   renderAdminTabs();
   filterAdminReport();
 });
@@ -1596,15 +1685,21 @@ function filterAdminReport() {
     groups.get(key).push(r);
   });
 
+  const lvf = currentAdminCompFilter ? currentAdminLevelFilter : '';
   const matches = r =>
     (!search || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number} ${r.payment_ref||''}`.toLowerCase().includes(search)) &&
-    (!sf || r.status === sf);
+    (!sf || r.status === sf) &&
+    (!lvf || getLevel(r) === lvf);
 
   const groupRows = [];
-  groups.forEach(members => {
+  adminExportRows = [];
+  groups.forEach(allMembers => {
+    // ถ้าเลือกระดับ ให้แสดงเฉพาะสมาชิกในระดับนั้น
+    const members = lvf ? allMembers.filter(r => getLevel(r) === lvf) : allMembers;
     if (!members.some(matches)) return;
     members.sort((a, b) => String(a.reg_number).localeCompare(String(b.reg_number)));
     groupRows.push({ rep: members[0], members });
+    members.filter(matches).forEach(m => adminExportRows.push(m));
   });
   groupRows.sort((a, b) => new Date(b.rep.created_at) - new Date(a.rep.created_at));
 
@@ -1618,7 +1713,7 @@ function renderAdminReport(groupRows, scopeTotal) {
     : (currentAdminCompFilter ? allRegs.filter(r => r.competition === currentAdminCompFilter).length : allRegs.length);
   const shownPeople = groupRows.reduce((sum, g) => sum + g.members.length, 0);
   document.getElementById('admin-report-count').textContent =
-    `แสดง ${shownPeople} จากทั้งหมด ${total} รายการ${currentAdminCompFilter ? ` (${currentAdminCompFilter})` : ''}`;
+    `แสดง ${shownPeople} จากทั้งหมด ${total} รายการ${currentAdminCompFilter ? ` (${currentAdminCompFilter}${currentAdminLevelFilter ? ' · ' + currentAdminLevelFilter : ''})` : ''}`;
   if (!groupRows.length) {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="8">ไม่พบข้อมูล</td></tr>';
     return;
@@ -1657,7 +1752,8 @@ document.getElementById('admin-tbody').addEventListener('click', e => {
 
 // ── admin: group list modal ─────────────────────────
 function openAdminGroupModal(key) {
-  const members = allRegs.filter(r => regGroupKey(r) === key)
+  const lvf = currentAdminCompFilter ? currentAdminLevelFilter : '';
+  const members = allRegs.filter(r => regGroupKey(r) === key && (!lvf || getLevel(r) === lvf))
     .sort((a, b) => String(a.reg_number).localeCompare(String(b.reg_number)));
   if (!members.length) { notify('ไม่พบข้อมูลกลุ่ม', 'err'); return; }
 
@@ -1710,8 +1806,18 @@ function openAdminDetail(id, comp) {
   if (!r) { notify('ไม่พบข้อมูล', 'err'); return; }
   const body = document.getElementById('admin-detail-body');
   body.innerHTML = `
-    <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--text-main);margin-bottom:4px;">${esc(r.firstname)} ${esc(r.lastname)}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">เลขที่สมัคร ${esc(r.reg_number)} · ${esc(r.competition)}</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px;">
+      <div style="min-width:0;">
+        <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--text-main);margin-bottom:4px;">${esc(r.firstname)} ${esc(r.lastname)}</div>
+        <div style="font-size:12px;color:var(--text-muted);">เลขที่สมัคร ${esc(r.reg_number)} · ${esc(r.competition)}</div>
+      </div>
+      <button type="button" class="refresh-btn" id="admin-edit-info-btn" style="flex:none;"><i class="ti ti-pencil"></i> แก้ไขข้อมูล</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 16px;">
+      <button type="button" class="refresh-btn" id="admin-export-one-btn"><i class="ti ti-file-export"></i> ส่งออกข้อมูลคนนี้ (Excel)</button>
+      <button type="button" class="refresh-btn" id="admin-copy-name-btn"><i class="ti ti-copy"></i> คัดลอกชื่อ</button>
+    </div>
+    <div id="admin-edit-panel" style="display:none;"></div>
 
     ${r.slip_url
       ? `<img src="${esc(r.slip_url)}" style="max-width:100%;border-radius:8px;border:0.5px solid var(--orange-bdr);margin-bottom:16px;">`
@@ -1732,6 +1838,7 @@ function openAdminDetail(id, comp) {
       <div id="admin-slip-status" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
     </div>
 
+    <div id="admin-info-view">
     <div class="detail-grid">
       <div><span class="detail-label">โรงเรียน</span><div class="detail-value">${esc(r.school)}</div></div>
       <div><span class="detail-label">จังหวัด</span><div class="detail-value">${esc(r.province) || '-'}</div></div>
@@ -1766,6 +1873,7 @@ function openAdminDetail(id, comp) {
       ? `<div class="detail-label" style="margin-top:16px;margin-bottom:4px;">หมายเหตุจากผู้สมัคร</div><div class="detail-value">${esc(r.additional_note)}</div>`
       : ''
     }
+    </div>
 
     <div class="detail-label" style="margin-top:20px;margin-bottom:6px;">จัดการสถานะ</div>
     <select class="fi" id="admin-status-select" style="margin-bottom:10px;">
@@ -1784,6 +1892,13 @@ function openAdminDetail(id, comp) {
     <div id="admin-save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
   `;
   document.getElementById('admin-save-btn').onclick = () => saveAdminEdit(r.id, r.competition);
+  document.getElementById('admin-edit-info-btn').onclick = () => openAdminInfoEditor(r);
+  document.getElementById('admin-export-one-btn').onclick = () => exportRegsExcel([r], `ผู้สมัคร_${r.reg_number || ''}_${r.firstname || ''}_${r.lastname || ''}`);
+  document.getElementById('admin-copy-name-btn').onclick = async () => {
+    const name = `${r.firstname || ''} ${r.lastname || ''}`.trim();
+    try { await navigator.clipboard.writeText(name); notify('คัดลอกชื่อแล้ว: ' + name); }
+    catch (_) { notify('คัดลอกไม่สำเร็จ', 'err'); }
+  };
   setupAdminSlipUploader(r);
   document.getElementById('admin-detail-modal').classList.add('open');
 }
@@ -1877,6 +1992,245 @@ async function saveAdminEdit(id, comp) {
   statusEl.textContent = 'บันทึกแล้ว ✓';
   notify('บันทึกข้อมูลแล้ว ✓');
   await loadReport();
+}
+
+
+
+// ── admin: ส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx) เปิดแล้วเป็นตารางสวยงาม ──
+let _xlsxLoading = null;
+function loadXlsxLib() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (_xlsxLoading) return _xlsxLoading;
+  _xlsxLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('xlsx'));
+    s.onerror = () => { _xlsxLoading = null; reject(new Error('load')); };
+    document.head.appendChild(s);
+  });
+  return _xlsxLoading;
+}
+
+function _regExportData(rows) {
+  const cols = [
+    ['ลำดับ',             null,                                                     6],
+    ['เลขสมัคร',          r => r.reg_number,                                        16],
+    ['รายการแข่งขัน',     r => r.competition,                                       16],
+    ['ชื่อ',              r => r.firstname,                                         18],
+    ['นามสกุล',           r => r.lastname,                                          18],
+    ['ชื่อ-สกุล',         r => `${r.firstname || ''} ${r.lastname || ''}`.trim(),   30],
+    ['โรงเรียน',          r => r.school,                                            34],
+    ['จังหวัด',           r => r.province,                                          14],
+    ['ชั้น',              r => r.grade,                                             7],
+    ['ระดับ',             r => getLevel(r) || r.level,                              14],
+    ['ครูผู้ควบคุม',      r => r.coach_name,                                        26],
+    ['เบอร์โทรครู',       r => r.coach_phone,                                       14],
+    ['สถานะ',             r => r.status,                                            16],
+    ['เลขอ้างอิงชำระเงิน', r => r.payment_ref,                                      20],
+    ['วันที่สมัคร',       r => formatDate(r.created_at),                            13]
+  ];
+  const header = cols.map(c => c[0]);
+  const body = rows.map((r, i) => cols.map((c, ci) => ci === 0 ? i + 1 : String(c[1](r) ?? '')));
+  return { cols, header, body };
+}
+
+function _downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+async function exportRegsExcel(rows, baseName) {
+  if (!rows.length) { notify('ไม่มีข้อมูลให้ส่งออก', 'err'); return; }
+  const safe = String(baseName || 'ผู้สมัคร').replace(/[\\/:*?"<>|\s]+/g, '_');
+  const { cols, header, body } = _regExportData(rows);
+
+  try {
+    const XLSX = await loadXlsxLib();
+    const ws = XLSX.utils.aoa_to_sheet([header, ...body]);
+    ws['!cols'] = cols.map(c => ({ wch: c[2] }));
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ผู้สมัคร');
+    XLSX.writeFile(wb, safe + '.xlsx');
+  } catch (err) {
+    // สำรอง: ถ้าโหลดตัวสร้าง Excel ไม่ได้ ให้ส่งออกเป็นตาราง HTML ที่ Excel เปิดได้
+    const th = header.map(h => `<th style="background:#ff6a00;color:#fff;border:1px solid #999;padding:4px">${esc(h)}</th>`).join('');
+    const tr = body.map(row => '<tr>' + row.map(v => `<td style="border:1px solid #bbb;padding:4px;mso-number-format:'\\@'">${esc(v)}</td>`).join('') + '</tr>').join('');
+    const LT = '<', GT = '>';
+    const html = LT + 'html xmlns:x="urn:schemas-microsoft-com:office:excel"' + GT + LT + 'head' + GT + LT + 'meta charset="utf-8"' + GT + LT + '/head' + GT + LT + 'body' + GT + LT + 'table' + GT + `<tr>${th}</tr>${tr}` + LT + '/table' + GT + LT + '/body' + GT + LT + '/html' + GT;
+    _downloadBlob(new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8' }), safe + '.xls');
+  }
+  notify(`ส่งออก ${rows.length} รายชื่อแล้ว ✓`);
+}
+
+function exportAdminList() {
+  const parts = ['รายชื่อผู้สมัคร'];
+  if (currentAdminCompFilter) parts.push(currentAdminCompFilter);
+  if (currentAdminCompFilter && currentAdminLevelFilter) parts.push(currentAdminLevelFilter);
+  exportRegsExcel(adminExportRows, parts.join('_'));
+}
+
+// ── admin: แก้ไขข้อมูลผู้สมัคร (ชื่อ โรงเรียน ชั้น ฯลฯ) ──────────
+const EDIT_LEVEL_OPTIONS = ['ประถมศึกษา', 'มัธยมต้น', 'มัธยมปลาย'];
+
+function levelFromGrade(g) {
+  if (/^ป\./.test(g)) return 'ประถมศึกษา';
+  if (/^ม\.[123]$/.test(g)) return 'มัธยมต้น';
+  if (/^ม\.[456]$/.test(g)) return 'มัธยมปลาย';
+  return '';
+}
+
+function editField(id, label, value, opts = {}) {
+  const span = opts.full ? 'grid-column:1/-1;' : '';
+  const req = opts.required ? ' <span style="color:#e07070">*</span>' : '';
+  const input = opts.textarea
+    ? `<textarea class="fi" id="${id}" style="min-height:64px;">${esc(value)}</textarea>`
+    : `<input class="fi" id="${id}" value="${esc(value)}"${opts.type ? ` type="${opts.type}"` : ''}>`;
+  return `<div style="${span}"><label class="detail-label" style="display:block;margin-bottom:4px;">${label}${req}</label>${input}</div>`;
+}
+
+function openAdminInfoEditor(r) {
+  const panel = document.getElementById('admin-edit-panel');
+  const view = document.getElementById('admin-info-view');
+  const hasInvoice = r.receipt_option === 'yes';
+  const mates = hasInvoice ? adminInvoiceMates(r) : [];
+  const gradeOpts = [...grades];
+  if (r.grade && !gradeOpts.includes(r.grade)) gradeOpts.unshift(r.grade);
+  const curLevel = EDIT_LEVEL_OPTIONS.includes(r.level) ? r.level : (getLevel(r) || '');
+
+  panel.innerHTML = `
+    <div style="background:var(--surface-2);border:0.5px solid var(--orange);border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:2px;"><i class="ti ti-pencil"></i> แก้ไขข้อมูลผู้สมัคร</div>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:12px;">แก้ไขแล้วกด "บันทึกข้อมูลผู้สมัคร" (ช่องที่มี * ต้องกรอก) · เลขสมัครแก้ไม่ได้</div>
+
+      <div class="detail-grid" style="margin-bottom:10px;">
+        ${editField('ed-firstname', 'ชื่อ', r.firstname, { required: true })}
+        ${editField('ed-lastname', 'นามสกุล', r.lastname, { required: true })}
+        ${editField('ed-school', 'โรงเรียน', r.school, { required: true, full: true })}
+        ${editField('ed-province', 'จังหวัด', r.province)}
+        <div></div>
+        <div>
+          <label class="detail-label" style="display:block;margin-bottom:4px;">ชั้น</label>
+          <select class="fi" id="ed-grade">${gradeOpts.map(g => `<option ${g === r.grade ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>
+        </div>
+        <div>
+          <label class="detail-label" style="display:block;margin-bottom:4px;">ระดับ <span style="text-transform:none;opacity:.7">(เปลี่ยนตามชั้นอัตโนมัติ)</span></label>
+          <select class="fi" id="ed-level">
+            <option value="">-</option>
+            ${EDIT_LEVEL_OPTIONS.map(l => `<option ${l === curLevel ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        ${editField('ed-coach', 'ครูผู้ควบคุม', r.coach_name)}
+        ${editField('ed-coach-phone', 'เบอร์โทรครู', r.coach_phone, { type: 'tel' })}
+      </div>
+
+      ${hasInvoice ? `
+      <div class="detail-label" style="margin:14px 0 8px;color:var(--gold)">📄 ข้อมูลใบกำกับภาษี</div>
+      <div class="detail-grid" style="margin-bottom:10px;">
+        ${editField('ed-inst-name', 'หน่วยงาน', r.institution_name)}
+        ${editField('ed-inst-tax', 'เลขผู้เสียภาษี', r.institution_taxid)}
+        ${editField('ed-payer-name', 'ผู้ชำระเงิน', r.payer_name)}
+        ${editField('ed-payer-phone', 'เบอร์ผู้ชำระ', r.payer_phone, { type: 'tel' })}
+        ${editField('ed-payer-addr', 'ที่อยู่', r.payer_address, { textarea: true, full: true })}
+      </div>
+      ${mates.length ? `
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);margin-bottom:10px;">
+        <input type="checkbox" id="ed-apply-mates" checked>
+        ใช้ข้อมูลใบกำกับภาษีนี้กับผู้สมัครอีก ${mates.length} คนในใบเดียวกันด้วย
+      </label>` : ''}
+      ` : ''}
+
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="submit-btn" id="ed-save-btn" style="flex:1;padding:10px;">บันทึกข้อมูลผู้สมัคร</button>
+        <button type="button" class="back-btn" id="ed-cancel-btn" style="flex:none;">ยกเลิก</button>
+      </div>
+      <div id="ed-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
+    </div>`;
+
+  panel.style.display = '';
+  view.style.display = 'none';
+  document.getElementById('admin-edit-info-btn').style.display = 'none';
+
+  document.getElementById('ed-grade').addEventListener('change', e => {
+    const lv = levelFromGrade(e.target.value);
+    if (lv) document.getElementById('ed-level').value = lv;
+  });
+  document.getElementById('ed-cancel-btn').onclick = () => {
+    panel.style.display = 'none';
+    panel.innerHTML = '';
+    view.style.display = '';
+    document.getElementById('admin-edit-info-btn').style.display = '';
+  };
+  document.getElementById('ed-save-btn').onclick = () => saveAdminInfo(r, hasInvoice, mates);
+  document.getElementById('ed-firstname').focus();
+}
+
+function adminInvoiceMates(r) {
+  return allRegs.filter(x =>
+    x.receipt_option === 'yes' && x.id !== r.id &&
+    x.created_at === r.created_at && x.competition === r.competition &&
+    x.institution_taxid === r.institution_taxid && x.payer_name === r.payer_name
+  );
+}
+
+async function saveAdminInfo(r, hasInvoice, mates) {
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const firstname = v('ed-firstname'), lastname = v('ed-lastname'), school = v('ed-school');
+  const statusEl = document.getElementById('ed-status');
+  if (!firstname || !lastname || !school) {
+    statusEl.style.color = '#e07070';
+    statusEl.textContent = 'กรุณากรอก ชื่อ นามสกุล และโรงเรียน ให้ครบ';
+    return;
+  }
+  const compObj = competitions.find(c => c.name === r.competition);
+  const table = regTable(compObj);
+  if (!table) { notify('ไม่พบตารางของรายการนี้', 'err'); return; }
+
+  const update = {
+    firstname, lastname, school,
+    province: v('ed-province'),
+    grade: v('ed-grade'),
+    level: v('ed-level'),
+    coach_name: v('ed-coach'),
+    coach_phone: v('ed-coach-phone')
+  };
+  const invoice = hasInvoice ? {
+    institution_name: v('ed-inst-name'),
+    institution_taxid: v('ed-inst-tax'),
+    payer_name: v('ed-payer-name'),
+    payer_phone: v('ed-payer-phone'),
+    payer_address: v('ed-payer-addr')
+  } : {};
+
+  const btn = document.getElementById('ed-save-btn');
+  btn.disabled = true;
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = 'กำลังบันทึก...';
+
+  // อัปเดตคนนี้ (ข้อมูลส่วนตัว + ใบกำกับภาษี)
+  let { error } = await sb.from(table).update({ ...update, ...invoice }).eq('id', r.id);
+
+  // อัปเดตข้อมูลใบกำกับภาษีให้คนอื่นในใบเดียวกัน (ถ้าเลือกไว้)
+  const applyMates = hasInvoice && mates.length && document.getElementById('ed-apply-mates')?.checked;
+  if (!error && applyMates) {
+    const ids = mates.map(m => m.id);
+    ({ error } = await sb.from(table).update(invoice).in('id', ids));
+  }
+
+  btn.disabled = false;
+  if (error) {
+    statusEl.style.color = '#e07070';
+    statusEl.textContent = '';
+    notify('บันทึกไม่สำเร็จ: ' + error.message, 'err');
+    return;
+  }
+  notify('แก้ไขข้อมูลผู้สมัครแล้ว ✓');
+  await loadReport();
+  openAdminDetail(r.id, r.competition);   // โหลดหน้ารายละเอียดใหม่ให้เห็นค่าที่แก้
 }
 
 // ── admin: sub-navigation (รายชื่อผู้สมัคร / ใบกำกับภาษี) ──
