@@ -507,9 +507,10 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
           <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">นาที</div></div>
           <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">วินาที</div></div>
         </div>
-        <div class="countdown-label" style="margin:12px 0 0;text-transform:none;letter-spacing:0">ปิดรับสมัครวันพุธที่ 11 พฤศจิกายน 2569 เวลา 10:00 น.</div>
+        <div class="countdown-label" style="margin:12px 0 0;text-transform:none;letter-spacing:0">ปิดรับสมัครวันพุธที่ 11 พฤศจิกายน 2569 เวลา 00:00 น.</div>
       </div>
     </div>
+
   </div>
 
   <div class="stats-row">
@@ -548,7 +549,7 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-clock"></i></div>
         <div class="tl-title">ปิดรับสมัคร</div>
-        <div class="tl-desc">วันที่ 11 พฤศจิกายน 2569 เวลา 10:00 น.</div>
+        <div class="tl-desc">วันที่ 11 พฤศจิกายน 2569 เวลา 00:00 น.</div>
       </div>
       <div class="tl-line"></div>
       <div class="tl-item">
@@ -978,8 +979,8 @@ if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
   document.getElementById('config-warn').style.display = 'block';
 }
 
-// ── ปิดรับสมัคร: วันพุธที่ 11 พ.ย. 2569 เวลา 10:00 น. (เวลาไทย) ──────────
-const REG_DEADLINE = new Date('2026-11-11T10:00:00+07:00').getTime();
+// ── ปิดรับสมัคร: วันพุธที่ 11 พ.ย. 2569 เวลา 00:00 น. (เวลาไทย) ──────────
+const REG_DEADLINE = new Date('2026-11-11T00:00:00+07:00').getTime();
 let clockOffset = 0;        // ชดเชยนาฬิกาเครื่องผู้ใช้ให้ตรงกับเวลาเซิร์ฟเวอร์ (กันปรับเวลาเครื่องเพื่อเลี่ยง)
 let regWasClosed = null;
 let regTimer = null;
