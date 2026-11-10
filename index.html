@@ -380,6 +380,7 @@ td { padding: 16px 18px; }
 #admin-detail-modal .slip-modal { max-width: 880px !important; width: min(100%, 880px); max-height: 92vh !important; }
 #admin-group-modal .slip-modal { max-width: 720px !important; }
 #admin-login-modal .slip-modal { max-width: 480px !important; }
+#admin-trash-modal .slip-modal { max-width: 820px !important; }
 .notif { padding: 17px 26px; max-width: 440px; right: 28px; bottom: 28px; border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.35); }
 
 /* โฟกัสด้วยคีย์บอร์ดเห็นชัด */
@@ -816,6 +817,7 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
         <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
       </select>
       <button class="refresh-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+      <button class="refresh-btn" id="admin-trash-btn" onclick="openAdminTrash()" title="ดูรายชื่อที่ถูกลบ และกู้คืนกลับมาได้"><i class="ti ti-trash"></i> รายชื่อที่ลบ (0)</button>
       <button class="refresh-btn" onclick="exportAdminList()" title="ส่งออกรายชื่อทุกคนที่แสดงอยู่ตามตัวกรองปัจจุบัน"><i class="ti ti-download"></i> ส่งออกรายชื่อที่แสดง (Excel)</button>
     </div>
     <div class="bulk-bar" id="admin-bulk-bar" role="region" aria-label="ปรับสถานะหลายคนพร้อมกัน">
@@ -824,6 +826,7 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
         <option>รอตรวจสอบ</option><option>ชำระเงินแล้ว</option><option selected>ยืนยันแล้ว</option><option>ยืนยันไม่สำเร็จ</option>
       </select>
       <button type="button" class="submit-btn" id="admin-bulk-apply"><i class="ti ti-checks"></i> ปรับสถานะที่เลือก</button>
+      <button type="button" class="back-btn" id="admin-bulk-delete" style="border-color:#e07070;color:#e07070;"><i class="ti ti-trash"></i> ลบที่เลือก</button>
       <button type="button" class="back-btn" id="admin-bulk-clear">ล้างที่เลือก</button>
     </div>
     <div class="tbl-wrap">
@@ -899,6 +902,15 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
   </div>
 </div>
 
+<div class="slip-modal-overlay" id="admin-trash-modal" onclick="closeAdminTrashModal(event)">
+  <div class="slip-modal" style="max-width:820px;width:min(100%,820px);max-height:92vh;">
+    <button class="slip-modal-close" onclick="document.getElementById('admin-trash-modal').classList.remove('open')">
+      <i class="ti ti-x"></i>
+    </button>
+    <div id="admin-trash-body"></div>
+  </div>
+</div>
+
 <div class="slip-modal-overlay" id="admin-group-modal" onclick="closeAdminGroupModal(event)">
   <div class="slip-modal" style="max-width:480px;text-align:left;max-height:88vh;overflow-y:auto;">
     <button class="slip-modal-close" onclick="document.getElementById('admin-group-modal').classList.remove('open')">
@@ -923,7 +935,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = 'admin@supermathlaw.internal';
 
 
-let allRegs = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
+let allRegs = [], allDeleted = [], competitions = [], selectedComp = null, slipBase64 = '', slipFile = null;
 let currentCompFilter = '';
 let currentLevelFilter = '';
 let currentAdminLevelFilter = '';
@@ -1347,9 +1359,9 @@ async function loadStats() {
   const tables = competitions.map(regTable).filter(Boolean);
   if (!tables.length) return;
   const results = await Promise.all(
-    tables.map(t => sb.from(t).select('status, school'))
+    tables.map(t => sb.from(t).select('*'))
   );
-  const data = results.flatMap(r => r.data || []);
+  const data = results.flatMap(r => r.data || []).filter(r => !r.deleted_at);
   document.getElementById('st-total').textContent   = data.length;
   document.getElementById('st-paid').textContent    = data.filter(r => r.status === 'ชำระเงินแล้ว' || r.status === 'ยืนยันแล้ว').length;
   document.getElementById('st-pending').textContent = data.filter(r => r.status === 'รอตรวจสอบ').length;
@@ -1477,9 +1489,10 @@ async function submitRegister() {
   // เตือนถ้ามีชื่อ-สกุลนี้สมัครรายการนี้ไว้แล้ว (กันสมัครซ้ำ/จ่ายเงินซ้ำ)
   for (const p of persons) {
     try {
-      const { data: dup } = await sb.from(regTableName).select('reg_number')
-        .eq('firstname', p.fname).eq('lastname', p.lname).limit(1);
-      if (dup && dup.length) {
+      const { data: dupAll } = await sb.from(regTableName).select('*')
+        .eq('firstname', p.fname).eq('lastname', p.lname);
+      const dup = (dupAll || []).filter(x => !x.deleted_at);
+      if (dup.length) {
         const go = confirm(`พบชื่อ "${p.fname} ${p.lname}" สมัครรายการนี้ไว้แล้ว (เลขสมัคร ${dup[0].reg_number})\n\nต้องการสมัครซ้ำอีกครั้งหรือไม่?`);
         if (!go) { btn.disabled = false; statusEl.textContent = ''; return; }
       }
@@ -1746,8 +1759,12 @@ async function loadReport() {
       '<tr class="empty-row"><td colspan="10">โหลดไม่สำเร็จ: '+failed.error.message+'</td></tr>';
     return;
   }
-  allRegs = results.flatMap(r => r.data || []);
+  const everyRow = results.flatMap(r => r.data || []);
+  allDeleted = everyRow.filter(r => r.deleted_at);   // ถูกลบ (ซ่อนไว้ในถังขยะ กู้คืนได้)
+  allRegs = everyRow.filter(r => !r.deleted_at);
   allRegs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  allDeleted.sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+  updateTrashBtn();
   renderReportTabs();
   filterReport();
   renderAdminTabs();
@@ -2133,6 +2150,7 @@ function openAdminDetail(id, comp) {
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 16px;">
       <button type="button" class="refresh-btn" id="admin-export-one-btn"><i class="ti ti-file-export"></i> ส่งออกข้อมูลคนนี้ (Excel)</button>
       <button type="button" class="refresh-btn" id="admin-copy-name-btn"><i class="ti ti-copy"></i> คัดลอกชื่อ</button>
+      <button type="button" class="refresh-btn" id="admin-delete-btn" style="border-color:#e07070;color:#e07070;"><i class="ti ti-trash"></i> ลบรายชื่อนี้</button>
     </div>
     <div id="admin-edit-panel" style="display:none;"></div>
 
@@ -2210,6 +2228,7 @@ function openAdminDetail(id, comp) {
   `;
   document.getElementById('admin-save-btn').onclick = () => saveAdminEdit(r.id, r.competition);
   document.getElementById('admin-edit-info-btn').onclick = () => openAdminInfoEditor(r);
+  document.getElementById('admin-delete-btn').onclick = () => adminSoftDelete([r], true);
   document.getElementById('admin-export-one-btn').onclick = () => exportRegsExcel([r], `ผู้สมัคร_${r.reg_number || ''}_${r.firstname || ''}_${r.lastname || ''}`);
   document.getElementById('admin-copy-name-btn').onclick = async () => {
     const name = `${r.firstname || ''} ${r.lastname || ''}`.trim();
@@ -2777,6 +2796,94 @@ document.getElementById('admin-bulk-apply').addEventListener('click', async () =
   }
   await loadReport();
 });
+
+// ── แอดมิน: ลบรายชื่อ (ซ่อนไว้ในถังขยะ) + กู้คืน ──────────────────
+// ลบแบบ "ซ่อน" โดยใส่เวลาในคอลัมน์ deleted_at ข้อมูลอื่นทุกอย่าง (เลขสมัคร รหัส สลิป สถานะ ฯลฯ) ไม่ถูกแตะต้อง
+// กู้คืน = ตั้ง deleted_at กลับเป็นว่าง รายชื่อจะกลับมาเหมือนเดิมทุกอย่าง
+// เลขสมัครของคนที่ลบจะไม่ถูกนำไปใช้ซ้ำ เพราะแถวยังอยู่ในฐานข้อมูล
+const DELETED_SQL_HINT = 'ยังไม่มีคอลัมน์ deleted_at ในฐานข้อมูล — ต้องเพิ่มก่อนใช้งานฟังก์ชันลบ/กู้คืน (ดูวิธีในคำอธิบายที่ผู้ช่วยส่งให้)';
+function adminDeleteError(msg) {
+  return /deleted_at/i.test(msg || '') ? DELETED_SQL_HINT : msg;
+}
+async function adminSetDeleted(people, deleted) {
+  const byTable = new Map();
+  people.forEach(m => {
+    const table = regTable(competitions.find(c => c.name === m.competition));
+    if (!table) return;
+    if (!byTable.has(table)) byTable.set(table, []);
+    byTable.get(table).push(m.id);
+  });
+  let done = 0, failed = 0, lastErr = '';
+  const stamp = deleted ? new Date().toISOString() : null;
+  for (const [table, ids] of byTable) {
+    const { error } = await sb.from(table).update({ deleted_at: stamp }).in('id', ids);
+    if (error) { failed += ids.length; lastErr = adminDeleteError(error.message); } else { done += ids.length; }
+  }
+  return { done, failed, lastErr };
+}
+async function adminSoftDelete(people, closeDetail) {
+  if (!people.length) return;
+  const names = people.slice(0, 5).map(m => `${m.firstname} ${m.lastname}`).join(', ') + (people.length > 5 ? ` ...และอีก ${people.length - 5} คน` : '');
+  if (!confirm(`ลบ ${people.length} คนนี้ออกจากรายชื่อ?\n${names}\n\n(ข้อมูลไม่หายไปไหน กู้คืนได้จากปุ่ม "รายชื่อที่ลบ")`)) return;
+  const { done, failed, lastErr } = await adminSetDeleted(people, true);
+  if (failed) notify(`ลบสำเร็จ ${done} คน, ไม่สำเร็จ ${failed} คน: ${lastErr}`, 'err');
+  else notify(`ลบ ${done} คนแล้ว (กู้คืนได้ที่ "รายชื่อที่ลบ") ✓`);
+  if (closeDetail) document.getElementById('admin-detail-modal').classList.remove('open');
+  people.forEach(m => adminSelected.delete(adminKey(m)));
+  await loadReport();
+}
+document.getElementById('admin-bulk-delete').addEventListener('click', () => adminSoftDelete(adminSelectedVisible(), false));
+
+function updateTrashBtn() {
+  const b = document.getElementById('admin-trash-btn');
+  if (b) b.innerHTML = `<i class="ti ti-trash"></i> รายชื่อที่ลบ (${allDeleted.length})`;
+}
+function openAdminTrash() {
+  document.getElementById('admin-trash-body').innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:calc(19px * var(--fs));color:var(--text-main);margin-bottom:4px;">รายชื่อที่ถูกลบ</div>
+    <div style="font-size:calc(14.5px * var(--fs));color:var(--text-muted);margin-bottom:14px;">กดกู้คืนแล้วรายชื่อจะกลับไปอยู่ที่เดิม โดยเลขสมัคร สถานะ สลิป และข้อมูลอื่นเหมือนเดิมทุกอย่าง</div>
+    <input class="fi" id="admin-trash-search" placeholder="ค้นหาชื่อ / โรงเรียน / เลขสมัคร..." style="margin-bottom:12px;" oninput="renderAdminTrash()">
+    <div id="admin-trash-list"></div>`;
+  renderAdminTrash();
+  document.getElementById('admin-trash-modal').classList.add('open');
+}
+function renderAdminTrash() {
+  const box = document.getElementById('admin-trash-list');
+  if (!box) return;
+  const q = (document.getElementById('admin-trash-search')?.value || '').toLowerCase();
+  const rows = allDeleted.filter(r => !q || `${r.firstname} ${r.lastname} ${r.school} ${r.reg_number}`.toLowerCase().includes(q));
+  if (!rows.length) {
+    box.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:28px 0;">${allDeleted.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ไม่มีรายชื่อที่ถูกลบ'}</div>`;
+    return;
+  }
+  box.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">` + rows.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;">
+      <div style="min-width:0;">
+        <div style="font-family:monospace;font-size:calc(14px * var(--fs));color:var(--gold);">${esc(r.reg_number)}</div>
+        <div style="font-size:calc(16px * var(--fs));color:var(--text-main);">${esc(r.firstname)} ${esc(r.lastname)}</div>
+        <div style="font-size:calc(13.5px * var(--fs));color:var(--text-muted);">${esc(r.school)} · ${esc(r.competition)} · ลบเมื่อ ${formatDate(r.deleted_at)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex:none;">
+        <span class="badge ${badgeClass[r.status]||'badge-wait'}">${esc(r.status)}</span>
+        <button type="button" class="submit-btn admin-restore-btn" style="padding:8px 14px;" data-id="${esc(r.id)}" data-comp="${esc(r.competition)}"><i class="ti ti-arrow-back-up"></i> กู้คืน</button>
+      </div>
+    </div>`).join('') + `</div>`;
+}
+document.getElementById('admin-trash-body').addEventListener('click', async e => {
+  const btn = e.target.closest('.admin-restore-btn');
+  if (!btn) return;
+  const r = allDeleted.find(x => String(x.id) === btn.dataset.id && x.competition === btn.dataset.comp);
+  if (!r) return;
+  btn.disabled = true;
+  const { failed, lastErr } = await adminSetDeleted([r], false);
+  if (failed) { btn.disabled = false; notify('กู้คืนไม่สำเร็จ: ' + lastErr, 'err'); return; }
+  notify(`กู้คืน ${r.firstname} ${r.lastname} แล้ว ✓`);
+  await loadReport();
+  renderAdminTrash();
+});
+function closeAdminTrashModal(e) {
+  if (e.target === document.getElementById('admin-trash-modal')) document.getElementById('admin-trash-modal').classList.remove('open');
+}
 
 // ── ปรับขนาดตัวอักษร (A− / A+) จำค่าไว้ในเครื่อง ──
 const FS_STEPS = [0.9, 1, 1.15, 1.3];
