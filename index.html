@@ -492,12 +492,22 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
   </div>
 
   <div class="hero">
-    <div class="hero-tag">เปิดรับสมัครแล้ว</div>
+    <div class="hero-tag" id="hero-tag">เปิดรับสมัครแล้ว</div>
     <h1><span class="hero-highlight">SUPER</span>MATH<br>ระดับประเทศ<br>ครั้งที่ 6</h1>
     <p>เลือกรายการแข่งขันที่ต้องการสมัครด้านล่าง</p>
 
     <div class="countdown-wrap">
-      <div class="countdown-label" style="font-size:calc(21.5px * var(--fs));color:var(--gold);font-weight:600;letter-spacing:0;text-transform:none;margin-bottom:0"><i class="ti ti-circle-check"></i> เปิดรับสมัครแล้ว</div>
+      <div class="countdown-label" id="reg-status-label" style="font-size:calc(21.5px * var(--fs));color:var(--gold);font-weight:600;letter-spacing:0;text-transform:none;margin-bottom:0"><i class="ti ti-circle-check"></i> เปิดรับสมัครแล้ว</div>
+      <div id="reg-countdown" style="margin-top:22px">
+        <div class="countdown-label">ปิดรับสมัครในอีก</div>
+        <div class="countdown-row" role="timer" aria-label="เวลาที่เหลือก่อนปิดรับสมัคร">
+          <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-unit">วัน</div></div>
+          <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-unit">ชั่วโมง</div></div>
+          <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-unit">นาที</div></div>
+          <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-unit">วินาที</div></div>
+        </div>
+        <div class="countdown-label" style="margin:12px 0 0;text-transform:none;letter-spacing:0">ปิดรับสมัครวันพุธที่ 11 พฤศจิกายน 2569 เวลา 10:00 น.</div>
+      </div>
     </div>
   </div>
 
@@ -537,7 +547,7 @@ button.admin-stat:hover { transform: translateY(-2px); border-color: var(--orang
       <div class="tl-item">
         <div class="tl-dot"><i class="ti ti-clock"></i></div>
         <div class="tl-title">ปิดรับสมัคร</div>
-        <div class="tl-desc">วันที่ 10 พฤศจิกายน 2569 </div>
+        <div class="tl-desc">วันที่ 11 พฤศจิกายน 2569 เวลา 10:00 น.</div>
       </div>
       <div class="tl-line"></div>
       <div class="tl-item">
@@ -956,8 +966,89 @@ if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
   document.getElementById('config-warn').style.display = 'block';
 }
 
+// ── ปิดรับสมัคร: วันพุธที่ 11 พ.ย. 2569 เวลา 10:00 น. (เวลาไทย) ──────────
+const REG_DEADLINE = new Date('2026-11-11T10:00:00+07:00').getTime();
+let clockOffset = 0;        // ชดเชยนาฬิกาเครื่องผู้ใช้ให้ตรงกับเวลาเซิร์ฟเวอร์ (กันปรับเวลาเครื่องเพื่อเลี่ยง)
+let regWasClosed = null;
+let regTimer = null;
+
+const nowMs = () => Date.now() + clockOffset;
+const isRegClosed = () => nowMs() >= REG_DEADLINE;
+
+async function syncServerClock() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(location.href.split('#')[0], { method: 'HEAD', cache: 'no-store' });
+    const t1 = Date.now();
+    const server = new Date(res.headers.get('Date')).getTime();
+    if (!isNaN(server)) clockOffset = server + 500 - (t0 + t1) / 2;
+  } catch (e) { /* ใช้เวลาเครื่องผู้ใช้แทน */ }
+  applyRegistrationState();
+}
+
+function updateCountdown(closed) {
+  const box = document.getElementById('reg-countdown');
+  if (!box) return;
+  box.style.display = closed ? 'none' : '';
+  if (closed) return;
+  const left = Math.max(0, REG_DEADLINE - nowMs());
+  const sec = Math.floor(left / 1000);
+  const parts = {
+    'cd-d': Math.floor(sec / 86400),
+    'cd-h': Math.floor(sec % 86400 / 3600),
+    'cd-m': Math.floor(sec % 3600 / 60),
+    'cd-s': sec % 60
+  };
+  const urgent = left < 3600 * 1000;   // เหลือไม่ถึง 1 ชั่วโมง → เปลี่ยนเป็นสีแดง
+  for (const id in parts) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.textContent = String(parts[id]).padStart(2, '0');
+    el.style.color = urgent ? '#ff6a6a' : '';
+  }
+}
+
+function applyRegistrationState() {
+  const closed = isRegClosed();
+  updateCountdown(closed);
+  const tag = document.getElementById('hero-tag');
+  const label = document.getElementById('reg-status-label');
+  if (tag) tag.textContent = closed ? 'ปิดรับสมัครแล้ว' : 'เปิดรับสมัครแล้ว';
+  if (label) label.innerHTML = closed
+    ? '<i class="ti ti-lock"></i> ปิดรับสมัครแล้ว'
+    : '<i class="ti ti-circle-check"></i> เปิดรับสมัครแล้ว';
+  if (closed === regWasClosed) return;
+
+  const justClosed = regWasClosed === false && closed;
+  regWasClosed = closed;
+  if (competitions.length) renderCompCards();
+  if (!closed) return;
+
+  clearInterval(regTimer);
+  document.querySelectorAll('#register-form-wrap input, #register-form-wrap select, #register-form-wrap textarea, #register-form-wrap button')
+    .forEach(el => { el.disabled = true; });
+  updateSubmitButton();
+  const onForm = document.getElementById('page-register')?.classList.contains('active');
+  const onSuccess = document.getElementById('register-success')?.style.display === 'block';
+  if (onForm && !onSuccess) {
+    notify('ถึงเวลาปิดรับสมัครแล้ว', 'err');
+    showPage('page-home');
+  } else if (justClosed) {
+    notify('ปิดรับสมัครแล้ว', 'err');
+  }
+}
+
+function regClosedAbort() {
+  notify('ปิดรับสมัครแล้ว', 'err');
+  const st = document.getElementById('submit-status');
+  if (st) st.textContent = '';
+  applyRegistrationState();
+  updateSubmitButton();
+}
+
 // ── routing ───────────────────────────────────────
 function showPage(id) {
+  if (id === 'page-register' && isRegClosed()) { notify('ปิดรับสมัครแล้ว', 'err'); id = 'page-home'; }
   if (id === 'page-admin' && !isAdmin) { openAdminLogin(); return; }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1044,13 +1135,14 @@ function updateSubmitButton() {
   const btn = document.getElementById('submit-btn');
   const isAgreed = document.getElementById('terms-agree').checked;
   const hasSlip = !!slipFile;
-  btn.disabled = !(isAgreed && hasSlip);
+  const closedNow = isRegClosed();
+  btn.disabled = closedNow || !(isAgreed && hasSlip);
   const hint = document.getElementById('submit-hint');
   if (hint) {
     const missing = [];
     if (!hasSlip) missing.push('แนบสลิปการโอนเงิน');
     if (!isAgreed) missing.push('ยินยอมเงื่อนไข');
-    hint.textContent = missing.length ? 'ต้อง' + missing.join(' และ ') + 'ก่อนจึงจะกดยืนยันได้' : '';
+    hint.textContent = closedNow ? 'ปิดรับสมัครแล้ว' : (missing.length ? 'ต้อง' + missing.join(' และ ') + 'ก่อนจึงจะกดยืนยันได้' : '');
   }
 }
 
@@ -1197,6 +1289,7 @@ function renderCompCards() {
     return;
   }
 
+  const closed = isRegClosed();
   grid.innerHTML = competitions.map((c, i) => {
     let bgImageHtml = `<div class="bg-placeholder">${emojis[i % 4]}</div>`;
     if (!c.image_url) {
@@ -1209,15 +1302,15 @@ function renderCompCards() {
     }
 
     return `
-      <div class="comp-card" role="button" tabindex="0" aria-label="สมัคร ${esc(c.name)}" onclick="openRegister(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRegister(${c.id})}" data-id="${c.id}">
+      <div class="comp-card" role="button" ${closed ? 'aria-disabled="true"' : 'tabindex="0"'} aria-label="${closed ? 'ปิดรับสมัคร' : 'สมัคร'} ${esc(c.name)}" onclick="openRegister(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRegister(${c.id})}" data-id="${c.id}"${closed ? ' style="filter:grayscale(.85);opacity:.65;pointer-events:none"' : ''}>
         ${bgImageHtml}
         <div class="overlay"></div>
         
         <div class="card-body">
           <div class="card-label">รายการ ${i + 1}</div>
           <div class="card-title">${esc(c.name)}</div>
-          <div class="card-date"><i class="ti ti-calendar" style="font-size:calc(13px * var(--fs))"></i> เปิดรับสมัครแล้ว</div>
-          <div class="card-hint">คลิกเพื่อสมัคร →</div>
+          <div class="card-date"><i class="ti ti-calendar" style="font-size:calc(13px * var(--fs))"></i> ${closed ? 'ปิดรับสมัครแล้ว' : 'เปิดรับสมัครแล้ว'}</div>
+          ${closed ? '' : '<div class="card-hint">คลิกเพื่อสมัคร →</div>'}
         </div>
       </div>
     `;
@@ -1238,6 +1331,7 @@ function changeBg(event, compId) {
 }
 
 function openRegister(compId) {
+  if (isRegClosed()) { regClosedAbort(); return; }
   selectedComp = competitions.find(c => c.id === compId);
   document.getElementById('register-comp-name').textContent = selectedComp?.name || '—';
   personCount = 1;
@@ -1324,6 +1418,7 @@ async function uploadSlipToSupabase(file, fileName) {
 
 // ── register ──────────────────────────────────────
 async function submitRegister() {
+  if (isRegClosed()) { regClosedAbort(); return; }
   // Check if terms agreed
   if (!document.getElementById('terms-agree').checked) {
     notify('กรุณายินยอมเงื่อนไขก่อนส่งข้อมูล', 'err');
@@ -1390,6 +1485,7 @@ async function submitRegister() {
       }
     } catch (e) { /* ตรวจซ้ำไม่ได้ ไม่ขัดขวางการสมัคร */ }
   }
+  if (isRegClosed()) { regClosedAbort(); return; }   // เช็คซ้ำหลังหน้าต่างยืนยัน/การตรวจซ้ำ
   statusEl.textContent = 'กำลังส่งข้อมูล...';
 
   // gen reg numbers: นับต่อจากเลขล่าสุดของรายการนั้น (ไม่ใช้จำนวนแถว เพื่อกันเลขซ้ำเมื่อมีการลบข้อมูล)
@@ -1411,6 +1507,8 @@ async function submitRegister() {
   const regNums = persons.map((_, i) =>
     `${pfx}${new Date().getFullYear()}${String(baseCount + i + 1).padStart(4,'0')}`
   );
+
+  if (isRegClosed()) { regClosedAbort(); return; }
 
   // upload slip
   let slipUrl = '';
@@ -1466,6 +1564,8 @@ async function submitRegister() {
     receipt_option: receiptOption,
     additional_note: additionalNote
   }));
+
+  if (isRegClosed()) { regClosedAbort(); return; }   // เช็คครั้งสุดท้ายก่อนบันทึกลงฐานข้อมูล
 
   const { error } = await sb.from(regTableName).insert(rows);
 
@@ -2761,6 +2861,9 @@ function initFloatingSymbols() {
 renderPersonForms();
 initFloatingSymbols();
 loadCompetitions().then(loadStats);
+applyRegistrationState();
+syncServerClock();
+regTimer = setInterval(applyRegistrationState, 1000);
 setReceiptOption('no');  // Initialize receipt section
 loadAnnouncement();
 subscribeAnnouncementRealtime();
